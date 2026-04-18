@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import { pool } from "../config/db.js";
+import { generateToken } from "../utils/generateToken.js";
 
 const SALT_ROUNDS = 10;
 
@@ -166,6 +167,8 @@ export const loginUser = async (req, res) => {
       });
     }
 
+    const token = generateToken(user);
+
     let alumniId = null;
     if (user.role && String(user.role).toLowerCase() === "alumni") {
       const al = await pool.query(
@@ -175,10 +178,11 @@ export const loginUser = async (req, res) => {
       alumniId = al.rows[0]?.id || null;
     }
 
-    // Return user without password
+    // Return user without password and include JWT
     res.json({
       success: true,
       message: "Login successful",
+      token,
       data: {
         id: user.id,
         name: user.name,

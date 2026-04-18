@@ -39,6 +39,7 @@ const LoginPage = () => {
       const result = response.data;
       if (result.success) {
         const role = result.data?.role;
+        localStorage.setItem("token", result.token);
         localStorage.setItem("role", role);
         localStorage.setItem("user", JSON.stringify(result.data));
 

@@ -82,10 +82,11 @@ export const getUpcomingAlumniEvents = async (req, res) => {
 
 export const registerForEvent = async (req, res) => {
   try {
-    const { user_id, event_id } = req.body;
+    const user_id = req.user?.id;
+    const { event_id } = req.body;
 
     if (!user_id || !event_id) {
-      return res.status(400).json({ message: "User ID and Event ID are required" });
+      return res.status(400).json({ message: "Event ID is required" });
     }
 
     // Validate user exists
@@ -139,10 +140,10 @@ export const registerForEvent = async (req, res) => {
 
 export const getUserRegistrations = async (req, res) => {
   try {
-    const { user_id } = req.params;
+    const user_id = req.user?.id;
 
     if (!user_id) {
-      return res.status(400).json({ message: "User ID is required" });
+      return res.status(400).json({ message: "Invalid authenticated user" });
     }
 
     const result = await pool.query(

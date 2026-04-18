@@ -18,10 +18,10 @@ const EventsPage = () => {
         const eventsData = response.data.data;
 
         // Check which events the current user has registered for
-        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-        if (currentUser && currentUser.id) {
+        const token = localStorage.getItem("token");
+        if (token) {
           try {
-            const registrationsResponse = await fetchUserRegistrations(currentUser.id);
+            const registrationsResponse = await fetchUserRegistrations();
             const registeredEventIds = registrationsResponse.data.data;
             setRegisteredEvents(new Set(registeredEventIds));
           } catch (regError) {
@@ -52,7 +52,6 @@ const EventsPage = () => {
 
     try {
       await registerForEvent({
-        user_id: currentUser.id,
         event_id: eventId
       });
 

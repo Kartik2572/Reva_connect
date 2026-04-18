@@ -5,6 +5,20 @@ const api = axios.create({
   baseURL: "http://localhost:5000/api"
 });
 
+api.interceptors.request.use(
+  (config) => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (token) {
+        config.headers = config.headers || {};
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Auth endpoints
 export const registerUser = (payload) => api.post("/auth/register", payload);
 export const loginUser = (payload) => api.post("/auth/login", payload);
@@ -31,7 +45,7 @@ export const fetchUpcomingAlumniEvents = () => api.get("/events/upcoming-alumni"
 
 export const registerForEvent = (payload) => api.post("/events/register", payload);
 
-export const fetchUserRegistrations = (userId) => api.get(`/events/user/${userId}/registrations`);
+export const fetchUserRegistrations = () => api.get("/events/user/registrations");
 
 export const fetchEventRegistrations = (eventId) => api.get(`/events/${eventId}/registrations`);
 
