@@ -52,6 +52,11 @@ export const fetchEventRegistrations = (eventId) => api.get(`/events/${eventId}/
 export const fetchEventsByHost = (host) =>
   api.get(`/events/host/${encodeURIComponent(host)}`);
 
+export const fetchAlumnusById = (id) => api.get(`/alumni/${id}`);
+export const updateAlumnusProfile = (id, payload) => api.put(`/alumni/${id}`, payload);
+
+export const updateUserProfile = (payload) => api.put("/auth/profile", payload);
+
 export const fetchOtherAlumniHostedEvents = (host) =>
   api.get(`/events/other-alumni/${encodeURIComponent(host)}`);
 
