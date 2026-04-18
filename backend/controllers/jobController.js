@@ -162,16 +162,17 @@ export const createJobReferral = async (req, res) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO job_referrals (alumni_id, job_title, company, description, location, job_link)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, alumni_id, job_title, company, description, location, job_link, created_at`,
+      `INSERT INTO job_referrals (alumni_id, job_title, company, description, location, job_link, posted_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, alumni_id, job_title, company, description, location, job_link, posted_by, created_at`,
       [
         alumni_id,
         String(job_title).trim(),
         company?.trim() || null,
         description?.trim() || null,
         location?.trim() || null,
-        job_link?.trim() || null
+        job_link?.trim() || null,
+        req.user?.name || ""
       ]
     );
 

@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   company TEXT,
-  posted_by TEXT,
+
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS job_referrals (
   description TEXT,
   location TEXT,
   job_link TEXT,
+  posted_by TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

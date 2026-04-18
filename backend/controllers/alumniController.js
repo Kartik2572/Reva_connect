@@ -81,6 +81,27 @@ export const getAlumni = async (req, res) => {
   }
 };
 
+export const getAlumnusById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `SELECT id, name, role, company, branch_or_company AS "branchOrCompany", graduation_year AS "graduationYear", experience, domain, location, status, verification_status AS "verificationStatus"
+       FROM alumni
+       WHERE id = $1`,
+      [id]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ message: "Alumnus not found" });
+    }
+
+    res.json({ data: formatAlumniRow(result.rows[0]) });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching alumnus" });
+  }
+};
+
 export const createAlumnus = async (req, res) => {
   try {
     const {
@@ -115,10 +136,14 @@ export const createAlumnus = async (req, res) => {
 };
 
 export const updateAlumnus = async (req, res) => {
+  const client = await pool.connect();
+
   try {
     const { id } = req.params;
-    const fields = [];
-    const values = [];
+    const { name, company, email, role, branchOrCompany, graduationYear, experience, domain, location, status, verificationStatus } = req.body;
+    const updateFields = [];
+    const updateValues = [];
+
     const allowedFields = [
       ["name", "name"],
       ["role", "role"],
@@ -134,27 +159,86 @@ export const updateAlumnus = async (req, res) => {
 
     allowedFields.forEach(([bodyKey, columnKey]) => {
       if (req.body[bodyKey] !== undefined) {
-        values.push(req.body[bodyKey]);
-        fields.push(`${columnKey} = $${values.length}`);
+        updateValues.push(req.body[bodyKey]);
+        updateFields.push(`${columnKey} = $${updateValues.length}`);
       }
     });
 
-    if (!fields.length) {
+    if (!updateFields.length && email === undefined) {
       return res.status(400).json({ message: "No update fields provided" });
     }
 
-    values.push(id);
-    const query = `UPDATE alumni SET ${fields.join(", ")} WHERE id = $${values.length} RETURNING id, name, role, company, branch_or_company AS "branchOrCompany", graduation_year AS "graduationYear", experience, domain, location, status, verification_status AS "verificationStatus"`;
-    const result = await pool.query(query, values);
+    await client.query("BEGIN");
 
-    if (!result.rows.length) {
+    const currentResult = await client.query(
+      "SELECT name FROM alumni WHERE id = $1",
+      [id]
+    );
+
+    if (!currentResult.rows.length) {
+      await client.query("ROLLBACK");
       return res.status(404).json({ message: "Alumnus not found" });
     }
 
-    res.json({ data: formatAlumniRow(result.rows[0]) });
+    const currentName = currentResult.rows[0].name;
+
+    if (updateFields.length) {
+      updateValues.push(id);
+      const updateQuery = `UPDATE alumni SET ${updateFields.join(", ")} WHERE id = $${updateValues.length} RETURNING id, name, role, company, branch_or_company AS "branchOrCompany", graduation_year AS "graduationYear", experience, domain, location, status, verification_status AS "verificationStatus"`;
+      const updateResult = await client.query(updateQuery, updateValues);
+
+      if (!updateResult.rows.length) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ message: "Alumnus not found" });
+      }
+    }
+
+    if (email !== undefined || name !== undefined) {
+      const userId = req.user?.id;
+      if (userId) {
+        const userFields = [];
+        const userValues = [];
+
+        if (name !== undefined) {
+          userFields.push(`name = $${userValues.length + 1}`);
+          userValues.push(name);
+        }
+        if (email !== undefined) {
+          userFields.push(`email = $${userValues.length + 1}`);
+          userValues.push(email);
+        }
+
+        if (userFields.length) {
+          userValues.push(userId);
+          await client.query(
+            `UPDATE users SET ${userFields.join(", ")} WHERE id = $${userValues.length}`,
+            userValues
+          );
+        }
+      }
+    }
+
+    if (name !== undefined && name.trim() !== "" && currentName.trim() !== "") {
+      await client.query("UPDATE events SET host = $1 WHERE host = $2", [name, currentName]);
+      await client.query("UPDATE posts SET author = $1 WHERE author = $2", [name, currentName]);
+    }
+
+    await client.query("COMMIT");
+
+    const finalResult = await pool.query(
+      `SELECT id, name, role, company, branch_or_company AS "branchOrCompany", graduation_year AS "graduationYear", experience, domain, location, status, verification_status AS "verificationStatus"
+       FROM alumni
+       WHERE id = $1`,
+      [id]
+    );
+
+    res.json({ data: formatAlumniRow(finalResult.rows[0]) });
   } catch (error) {
+    await client.query("ROLLBACK");
     console.error(error);
     res.status(500).json({ message: "Error updating alumnus" });
+  } finally {
+    client.release();
   }
 };
 

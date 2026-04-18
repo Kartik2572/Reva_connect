@@ -215,3 +215,45 @@ export const loginUser = async (req, res) => {
     });
   }
 };
+
+export const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { name, email } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const fields = [];
+    const values = [];
+
+    if (name !== undefined && name.trim()) {
+      fields.push(`name = $${fields.length + 1}`);
+      values.push(name.trim());
+    }
+
+    if (email !== undefined && email.trim()) {
+      fields.push(`email = $${fields.length + 1}`);
+      values.push(email.trim());
+    }
+
+    if (!fields.length) {
+      return res.status(400).json({ message: "No valid fields to update" });
+    }
+
+    values.push(userId);
+    const query = `UPDATE users SET ${fields.join(", ")}, updated_at = CURRENT_TIMESTAMP WHERE id = $${values.length} RETURNING id, name, email, role, branch`;
+
+    const result = await pool.query(query, values);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ data: result.rows[0] });
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    res.status(500).json({ message: "Error updating profile" });
+  }
+};
