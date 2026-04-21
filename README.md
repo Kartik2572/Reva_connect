@@ -113,12 +113,7 @@ All frontend data is loaded using Axios wrapper functions from `src/services/api
 
 ---
 
-## Next Steps / Extensions
 
-This project is intentionally minimal and mock‑driven. Typical next steps include:
 
-- Adding proper authentication (student vs alumni roles)
-- Integrating a real database (e.g. PostgreSQL, MongoDB) instead of in‑memory arrays
-- Persisting likes, comments and mentorship request status
-- Adding admin tools for verifying alumni and moderating posts
+
 
