@@ -229,6 +229,18 @@ const Analytics = () => {
                 <p className="mt-1 text-[11px] text-gray-400">Rows in event_registrations</p>
               </div>
             </section>
+
+            <section className="card mt-6 p-6">
+              <h3 className="card-title mb-4">Most Requested Mentor</h3>
+              <p className="text-2xl font-semibold text-gray-900">
+                {adminStats?.analytics?.mostRequestedMentor || "No mentor data yet"}
+              </p>
+              <p className="mt-2 text-sm text-gray-500">
+                {adminStats?.analytics?.mostRequestedMentorCount > 0
+                  ? `${adminStats.analytics.mostRequestedMentorCount} mentorship request${adminStats.analytics.mostRequestedMentorCount === 1 ? "" : "s"}`
+                  : "No mentorship requests recorded yet."}
+              </p>
+            </section>
           </>
         )}
       </div>

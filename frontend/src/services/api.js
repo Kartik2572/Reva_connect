@@ -39,6 +39,10 @@ export const fetchJobApplicationsForStudent = (studentId) =>
 
 export const createJobApplication = (payload) => api.post("/jobs/apply", payload);
 
+export const fetchAdminJobReferrals = () => api.get("/jobs/admin/all");
+
+export const updateAdminJobReferral = (id, payload) => api.put(`/jobs/admin/${id}`, payload);
+
 export const fetchEvents = () => api.get("/events");
 
 export const fetchUpcomingAlumniEvents = () => api.get("/events/upcoming-alumni");
@@ -74,6 +78,21 @@ export const createEvent = (payload) => api.post("/events", payload);
 export const updateEvent = (id, payload) => api.put(`/events/${id}`, payload);
 
 export const deleteEvent = (id, config) => api.delete(`/events/${id}`, config);
+
+// Connection APIs
+export const fetchAllStudents = (userId) => api.get("/connections/students", { params: { userId } });
+
+export const fetchConnectionStatus = (userId) => api.get(`/connections/status/${userId}`);
+
+export const fetchMyConnections = () => api.get("/connections/my");
+
+export const fetchPendingRequests = () => api.get("/connections/pending");
+
+export const sendConnectionRequest = (recipientId) => api.post("/connections", { recipientId });
+
+export const acceptConnectionRequest = (connectionId) => api.put(`/connections/accept/${connectionId}`);
+
+export const rejectConnectionRequest = (connectionId) => api.put(`/connections/reject/${connectionId}`);
 
 export const fetchPosts = () => api.get("/posts");
 

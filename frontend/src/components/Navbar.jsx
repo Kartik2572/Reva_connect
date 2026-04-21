@@ -57,7 +57,7 @@ const Navbar = () => {
             className="h-10 w-auto"
           />
           <div>
-            <p className="text-sm font-semibold text-gray-900">LinkEdCampus</p>
+            <p className="text-sm font-semibold text-gray-900">RevaConnect</p>
             <p className="text-xs text-gray-500">
               Alumni & Student Connect Platform
             </p>
