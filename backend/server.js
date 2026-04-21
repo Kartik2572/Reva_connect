@@ -10,6 +10,7 @@ import postRoutes from "./routes/postRoutes.js";
 import eventRoutes from "./routes/eventRoutes.js";
 import mentorshipRoutes from "./routes/mentorshipRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import connectionRoutes from "./routes/connectionRoutes.js";
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use("/api/posts", postRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/mentorship", mentorshipRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/connections", connectionRoutes);
 
 // 404 handler for unknown API routes
 app.use("/api", (req, res) => {

@@ -82,9 +82,15 @@ pool.query("SELECT NOW()", async (err, res) => {
           description TEXT,
           location TEXT,
           job_link TEXT,
+          posted_by TEXT,
+          status TEXT DEFAULT 'Active',
+          is_flagged BOOLEAN DEFAULT FALSE,
           created_at TIMESTAMPTZ DEFAULT NOW()
         )
       `);
+      await pool.query(`ALTER TABLE job_referrals ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Active'`);
+      await pool.query(`ALTER TABLE job_referrals ADD COLUMN IF NOT EXISTS is_flagged BOOLEAN DEFAULT FALSE`);
+      await pool.query(`ALTER TABLE job_referrals ADD COLUMN IF NOT EXISTS posted_by TEXT`);
 
       await pool.query(`
         CREATE TABLE IF NOT EXISTS job_applications (

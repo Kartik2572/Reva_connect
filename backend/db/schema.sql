@@ -71,6 +71,8 @@ CREATE TABLE IF NOT EXISTS job_referrals (
   location TEXT,
   job_link TEXT,
   posted_by TEXT,
+  status TEXT DEFAULT 'Active',
+  is_flagged BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -102,4 +104,15 @@ CREATE TABLE IF NOT EXISTS mentorship_requests (
   mentor_id UUID NOT NULL REFERENCES alumni(id) ON DELETE CASCADE,
   status TEXT DEFAULT 'Pending',
   created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Connection requests table for student-to-student networking
+CREATE TABLE IF NOT EXISTS connections (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  requester_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  recipient_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status TEXT DEFAULT 'Pending' CHECK (status IN ('Pending', 'Accepted', 'Rejected')),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(requester_id, recipient_id)
 );

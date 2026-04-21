@@ -12,7 +12,7 @@ export const getAdminStats = async (req, res) => {
       pool.query("SELECT title FROM events ORDER BY registered_students DESC NULLS LAST LIMIT 1"),
       pool.query("SELECT name FROM alumni ORDER BY experience DESC NULLS LAST LIMIT 1"),
       pool.query(
-        "SELECT u.name FROM mentorship_requests m JOIN users u ON u.id = m.mentor_id GROUP BY u.name ORDER BY COUNT(*) DESC LIMIT 1"
+        "SELECT a.name, COUNT(*) AS request_count FROM mentorship_requests m JOIN alumni a ON a.id = m.mentor_id GROUP BY a.name ORDER BY COUNT(*) DESC LIMIT 1"
       )
     ]);
 
@@ -26,6 +26,7 @@ export const getAdminStats = async (req, res) => {
         analytics: {
           mostActiveAlumni: mostActiveAlumniRes.rows[0]?.name || null,
           mostRequestedMentor: mostRequestedMentorRes.rows[0]?.name || null,
+          mostRequestedMentorCount: Number(mostRequestedMentorRes.rows[0]?.request_count || 0),
           mostPopularEvent: popularEventRes.rows[0]?.title || null
         }
       }

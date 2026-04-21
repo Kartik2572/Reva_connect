@@ -161,6 +161,9 @@ export const createJobReferral = async (req, res) => {
       return res.status(400).json({ message: "Invalid alumni_id" });
     }
 
+    const nameRes = await pool.query(`SELECT name FROM alumni WHERE id = $1`, [alumni_id]);
+    const alumniName = nameRes.rows[0]?.name || null;
+
     const result = await pool.query(
       `INSERT INTO job_referrals (alumni_id, job_title, company, description, location, job_link, posted_by)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -172,18 +175,103 @@ export const createJobReferral = async (req, res) => {
         description?.trim() || null,
         location?.trim() || null,
         job_link?.trim() || null,
-        req.user?.name || ""
+        alumniName
       ]
     );
 
     const row = result.rows[0];
-    const nameRes = await pool.query(`SELECT name FROM alumni WHERE id = $1`, [alumni_id]);
-    row.alumni_name = nameRes.rows[0]?.name || null;
+    row.alumni_name = alumniName;
 
     res.status(201).json({ data: formatJobReferral(row) });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error creating job referral" });
+  }
+};
+
+export const getAdminJobReferrals = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT j.id, j.alumni_id, j.job_title, j.company, j.description, j.location, j.job_link, j.posted_by, j.status, j.is_flagged, j.created_at,
+              a.name AS alumni_name
+       FROM job_referrals j
+       JOIN alumni a ON j.alumni_id = a.id
+       ORDER BY j.created_at DESC`
+    );
+    res.json({ data: result.rows.map(row => ({
+      id: row.id,
+      alumniId: row.alumni_id,
+      alumniName: row.alumni_name,
+      jobTitle: row.job_title,
+      company: row.company,
+      description: row.description,
+      location: row.location,
+      jobLink: row.job_link,
+      postedBy: row.posted_by,
+      status: row.status,
+      isFlagged: row.is_flagged,
+      createdAt: row.created_at
+    })) });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching admin job referrals" });
+  }
+};
+
+export const updateJobReferralStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, isFlagged } = req.body;
+
+    if (status && !['Active', 'Archived'].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const fields = [];
+    const values = [];
+
+    if (status !== undefined) {
+      fields.push(`status = $${fields.length + 1}`);
+      values.push(status);
+    }
+
+    if (isFlagged !== undefined) {
+      fields.push(`is_flagged = $${fields.length + 1}`);
+      values.push(Boolean(isFlagged));
+    }
+
+    if (!fields.length) {
+      return res.status(400).json({ message: "No fields to update" });
+    }
+
+    values.push(id);
+    const query = `UPDATE job_referrals SET ${fields.join(", ")} WHERE id = $${values.length} RETURNING id, alumni_id, job_title, company, description, location, job_link, posted_by, status, is_flagged, created_at`;
+    const result = await pool.query(query, values);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ message: "Job referral not found" });
+    }
+
+    const row = result.rows[0];
+    const nameRes = await pool.query(`SELECT name FROM alumni WHERE id = $1`, [row.alumni_id]);
+    
+    res.json({ data: {
+      id: row.id,
+      alumniId: row.alumni_id,
+      alumniName: nameRes.rows[0]?.name || null,
+      jobTitle: row.job_title,
+      company: row.company,
+      description: row.description,
+      location: row.location,
+      jobLink: row.job_link,
+      postedBy: row.posted_by,
+      status: row.status,
+      isFlagged: row.is_flagged,
+      createdAt: row.created_at
+    } });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error updating job referral" });
   }
 };
 
