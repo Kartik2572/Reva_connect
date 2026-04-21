@@ -284,16 +284,6 @@ const App = () => {
           }
         />
         <Route
-          path="/alumni/profile"
-          element={
-            <ProtectedRoute allowedRole="alumni">
-              <AppLayout>
-                <AlumniProfile />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/alumni/settings"
           element={
             <ProtectedRoute allowedRole="alumni">
@@ -351,16 +341,6 @@ const App = () => {
             <ProtectedRoute allowedRole="student">
               <AppLayout>
                 <StudentEvents />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/student/profile"
-          element={
-            <ProtectedRoute allowedRole="student">
-              <AppLayout>
-                <StudentProfile />
               </AppLayout>
             </ProtectedRoute>
           }

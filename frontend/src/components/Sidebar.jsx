@@ -29,7 +29,6 @@ const getNavItemsForRole = () => {
       { to: "/alumni/jobs", label: "Job Referrals" },
       { to: "/alumni/posts", label: "Create Post" },
       { to: "/alumni/events", label: "Events" },
-      { to: "/alumni/profile", label: "Profile" },
       { to: "/alumni/settings", label: "Settings" }
     ];
   }
@@ -42,7 +41,6 @@ const getNavItemsForRole = () => {
       { to: "/student/jobs", label: "Job Referrals" },
       { to: "/student/feed", label: "Networking Feed" },
       { to: "/student/events", label: "Events & Webinars" },
-      { to: "/student/profile", label: "Profile" },
       { to: "/student/settings", label: "Settings" }
     ];
   }

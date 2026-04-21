@@ -63,131 +63,135 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center px-4 py-8">
-      {/* Background image with dark gradient overlay */}
+    <div className="relative flex min-h-screen items-center justify-center px-4 py-8 overflow-hidden font-sans">
+      {/* Background Image & Overlay */}
       <div
-        className="pointer-events-none absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-1000 scale-105"
         style={{ backgroundImage: `url(${bgImage})` }}
-        aria-hidden="true"
       />
-      
-      {/* Dark gradient overlay for better contrast */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-black/70 via-black/60 to-orange-900/50" aria-hidden="true" />
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-gray-900/90 via-gray-900/80 to-[#F37021]/30 backdrop-blur-sm" />
 
-      {/* Content Container */}
-      <div className="relative z-10 w-full max-w-md">
-        {/* Branding Section */}
-        <div className="mb-8 text-center">
-         
-          <h1 className="mt-4 text-4xl font-bold text-white tracking-tight">
+      {/* Decorative Orbs */}
+      <div className="absolute top-1/4 left-1/4 z-0 w-64 h-64 bg-[#F37021]/30 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 z-0 w-96 h-96 bg-orange-600/20 rounded-full blur-3xl animate-pulse delay-1000" />
+
+      {/* Main Content */}
+      <div className="relative z-10 w-full max-w-[420px] flex flex-col items-center">
+        {/* Branding */}
+        <div className="mb-8 text-center flex flex-col items-center">
+          <div className="w-16 h-16 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center mb-4 shadow-xl">
+            <svg className="w-8 h-8 text-[#F37021]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight mb-1">
             RevaConnect
           </h1>
-          <p className="mt-2 text-lg text-orange-100 font-light">
-            Connecting Students and Alumni
-          </p>
-          <p className="mt-2 text-sm text-gray-300">
-            Empowering REVA University's Community
+          <p className="text-sm text-gray-300 font-medium tracking-wide uppercase">
+            Alumni & Student Hub
           </p>
         </div>
 
-        {/* Glassmorphism Login Card */}
-        <div className="backdrop-blur-lg bg-white/80 rounded-2xl p-8 shadow-2xl border border-white/20">
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h2>
-          <p className="text-sm text-gray-600 mb-6">
-            Sign in to access your dashboard
-          </p>
+        {/* Login Card */}
+        <div className="w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-2xl relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+          
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-white mb-2">Welcome Back</h2>
+            <p className="text-sm text-gray-300">Sign in to your account to continue</p>
+          </div>
 
-          {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email Input */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email Address
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">
-                  📧
-                </span>
+            {/* Email Field */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Email Address</label>
+              <div className="relative group/input">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within/input:text-[#F37021] transition-colors">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
                 <input
                   type="email"
                   name="email"
                   value={form.email}
                   onChange={handleChange}
                   disabled={isLoading}
-                  className="w-full pl-10 pr-4 py-3 rounded-lg border-2 border-gray-200 bg-white/50 placeholder-gray-400 text-gray-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all duration-200"
-                  placeholder="you@example.com"
+                  placeholder="name@reva.edu.in"
+                  className="w-full bg-black/20 border border-white/10 text-white placeholder-gray-500 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F37021] focus:border-transparent transition-all"
                 />
               </div>
             </div>
 
-            {/* Password Input */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">
-                  🔒
-                </span>
+            {/* Password Field */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Password</label>
+              <div className="relative group/input">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within/input:text-[#F37021] transition-colors">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
                 <input
                   type="password"
                   name="password"
                   value={form.password}
                   onChange={handleChange}
                   disabled={isLoading}
-                  className="w-full pl-10 pr-4 py-3 rounded-lg border-2 border-gray-200 bg-white/50 placeholder-gray-400 text-gray-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all duration-200"
                   placeholder="••••••••"
+                  className="w-full bg-black/20 border border-white/10 text-white placeholder-gray-500 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F37021] focus:border-transparent transition-all"
                 />
               </div>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-                <p className="text-sm font-medium text-red-700">{error}</p>
+              <div className="flex items-start bg-red-500/10 border border-red-500/30 rounded-xl p-3 backdrop-blur-sm animate-fade-in">
+                <svg className="h-5 w-5 text-red-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="ml-2 text-sm text-red-200 leading-tight">{error}</p>
               </div>
             )}
 
-            {/* Login Button */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 mt-8 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
+              className="w-full relative flex items-center justify-center py-3.5 px-4 mt-2 bg-gradient-to-r from-[#F37021] to-orange-600 hover:from-orange-500 hover:to-[#F37021] text-white font-semibold rounded-xl shadow-[0_0_20px_rgba(243,112,33,0.3)] transition-all duration-300 hover:shadow-[0_0_25px_rgba(243,112,33,0.5)] transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none overflow-hidden"
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Authenticating...
+                </>
+              ) : (
+                "Sign In to Platform"
+              )}
             </button>
+          </form>
 
-            {/* Register Link */}
-            <p className="text-center mt-4 text-sm text-gray-700">
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="font-semibold text-orange-600 hover:text-orange-700 transition-colors"
-              >
-                Register here
+          {/* Registration Link */}
+          <div className="mt-8 pt-6 border-t border-white/10 text-center">
+            <p className="text-sm text-gray-400">
+              New to RevaConnect?{" "}
+              <Link to="/register" className="text-[#F37021] font-semibold hover:text-orange-400 transition-colors">
+                Create an account
               </Link>
             </p>
-          </form>
+          </div>
         </div>
 
-        {/* Registration Guidance */}
-        <div className="mt-8 backdrop-blur-lg bg-white/10 rounded-xl p-6 border border-white/20">
-          <p className="text-sm font-semibold text-white mb-4 flex items-center">
-            <span className="mr-2">💡 Login Tip</span>
+        {/* Footer info */}
+        <div className="mt-10 text-center space-y-1">
+          <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">
+            © 2026 Reva University
           </p>
-          <p className="text-sm text-gray-200">
-            Use the email address you registered with and your password to sign in.
-            If you don’t have an account yet, click the Register link above to create one.
-          </p>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-300">
-            © 2026 RevaConnect • Reva University
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Connecting talent with opportunity
+          <p className="text-xs text-gray-600">
+            Secure, private, and exclusive for REVA students and alumni.
           </p>
         </div>
       </div>

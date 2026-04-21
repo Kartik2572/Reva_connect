@@ -100,6 +100,10 @@ export const createPost = (payload) => api.post("/posts", payload);
 
 export const fetchPostsByAuthor = (author) => api.get(`/posts/author/${author}`);
 
+export const updatePost = (id, payload) => api.put(`/posts/${id}`, payload);
+
+export const deletePost = (id) => api.delete(`/posts/${id}`);
+
 export const submitMentorshipRequest = (payload) =>
   api.post("/mentorship/request", payload);
 

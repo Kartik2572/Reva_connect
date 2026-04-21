@@ -237,15 +237,7 @@ const AdminDashboard = () => {
                         </span>
                       </td>
                       <td className="px-3 py-2 text-xs space-x-1">
-                        <button
-                          type="button"
-                          className="btn-ghost px-2 py-1 text-[11px]"
-                          onClick={() =>
-                            logAdminAction(`Admin ${getAdminName()} viewed profile of ${user.name}`)
-                          }
-                        >
-                          View Profile
-                        </button>
+
                         <button
                           type="button"
                           className="btn-ghost px-2 py-1 text-[11px]"
