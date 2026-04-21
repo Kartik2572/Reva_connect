@@ -3,7 +3,9 @@ import {
   fetchAllStudents,
   fetchConnectionStatus,
   sendConnectionRequest,
-  fetchMyConnections
+  fetchMyConnections,
+  acceptConnectionRequest,
+  rejectConnectionRequest
 } from "../services/api";
 
 const StudentFeed = () => {
@@ -83,6 +85,45 @@ const StudentFeed = () => {
     }
   };
 
+  const handleAccept = async (connectionId, studentId) => {
+    try {
+      setSending(connectionId);
+      const response = await acceptConnectionRequest(connectionId);
+      if (response.data?.success) {
+        setConnections((prev) => ({
+          ...prev,
+          [studentId]: response.data.data
+        }));
+        loadMyConnections();
+        alert("Connection accepted!");
+      }
+    } catch (error) {
+      console.error("Error accepting connection request:", error);
+      alert(error.response?.data?.message || "Failed to accept connection request");
+    } finally {
+      setSending(null);
+    }
+  };
+
+  const handleReject = async (connectionId, studentId) => {
+    try {
+      setSending(connectionId);
+      const response = await rejectConnectionRequest(connectionId);
+      if (response.data?.success) {
+        setConnections((prev) => ({
+          ...prev,
+          [studentId]: response.data.data
+        }));
+        loadMyConnections();
+      }
+    } catch (error) {
+      console.error("Error rejecting connection request:", error);
+      alert(error.response?.data?.message || "Failed to reject connection request");
+    } finally {
+      setSending(null);
+    }
+  };
+
   const getConnectionButton = (student) => {
     const connection = connections[student.id];
     
@@ -107,9 +148,13 @@ const StudentFeed = () => {
         );
       } else {
         return (
-          <span className="rounded-full bg-green-100 px-3 py-1.5 text-sm font-medium text-green-800">
-            Accept
-          </span>
+          <button
+            onClick={() => handleAccept(connection.id, student.id)}
+            disabled={sending === connection.id}
+            className="rounded-full bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:opacity-50"
+          >
+            {sending === connection.id ? "Accepting..." : "Accept"}
+          </button>
         );
       }
     }
@@ -129,7 +174,7 @@ const StudentFeed = () => {
           disabled={sending === student.id}
           className="rounded-full bg-blue-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
         >
-          {sending === student.id ? "Sending..." : "Retry Connect"}
+          {sending === student.id ? "Sending..." : "Connect"}
         </button>
       );
     }
@@ -250,7 +295,7 @@ const StudentFeed = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {myConnections.map((connection) => (
+                {myConnections.filter(c => c.status === "Accepted").map((connection) => (
                   <div
                     key={connection.id}
                     className="card flex items-center justify-between p-4"
