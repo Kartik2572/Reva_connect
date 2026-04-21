@@ -219,7 +219,7 @@ export const loginUser = async (req, res) => {
 export const updateUserProfile = async (req, res) => {
   try {
     const userId = req.user?.id;
-    const { name, email } = req.body;
+    const { name, email, branch } = req.body;
 
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -236,6 +236,11 @@ export const updateUserProfile = async (req, res) => {
     if (email !== undefined && email.trim()) {
       fields.push(`email = $${fields.length + 1}`);
       values.push(email.trim());
+    }
+
+    if (branch !== undefined && branch.trim()) {
+      fields.push(`branch = $${fields.length + 1}`);
+      values.push(branch.trim());
     }
 
     if (!fields.length) {

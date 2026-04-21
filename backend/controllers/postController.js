@@ -91,3 +91,22 @@ export const getPostsByAuthor = async (req, res) => {
     res.status(500).json({ message: "Error fetching posts by author" });
   }
 };
+
+export const deletePost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      "DELETE FROM posts WHERE id = $1 RETURNING id",
+      [id]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    res.json({ success: true, message: "Post deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error deleting post" });
+  }
+};
