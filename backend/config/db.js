@@ -1,7 +1,12 @@
 import pg from "pg";
 import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: join(__dirname, "..", ".env") });
 
 const { Pool } = pg;
 
@@ -100,6 +105,19 @@ pool.query("SELECT NOW()", async (err, res) => {
           status TEXT NOT NULL DEFAULT 'Applied',
           created_at TIMESTAMPTZ DEFAULT NOW(),
           UNIQUE(student_id, job_referral_id)
+        )
+      `);
+
+      // Create connections table for student-to-student networking
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS connections (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          requester_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          recipient_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          status TEXT DEFAULT 'Pending' CHECK (status IN ('Pending', 'Accepted', 'Rejected')),
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(requester_id, recipient_id)
         )
       `);
 
