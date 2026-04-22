@@ -48,7 +48,6 @@ npm start      # starts server with node
 
 All endpoints return mock JSON data from in‑memory arrays in `mockData/index.js`.
 
-- `GET /api/health` – simple health check
 - `GET /api/alumni` – list of alumni (supports optional query params `company`, `domain`, `graduationYear`)
 - `GET /api/jobs` – job referral posts
 - `GET /api/events` – upcoming events and webinars
@@ -112,7 +111,7 @@ All frontend data is loaded using Axios wrapper functions from `src/services/api
 - Card‑based design for alumni, jobs, events and posts.
 
 ---
-
+Tech stack: React.js, Express.js, Node.js, PostgreSQL, JWT, Bcrypt
 
 
 
