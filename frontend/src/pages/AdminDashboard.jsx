@@ -142,112 +142,124 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="flex-1 bg-gray-50">
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-        <header className="mb-6 flex items-center justify-between gap-3">
+    <div className="flex-1 bg-gradient-to-br from-gray-50 via-white to-orange-50/20 dark:from-slate-900 dark:via-slate-800 dark:to-orange-900/20 relative min-h-[calc(100vh-64px)] overflow-hidden transition-colors duration-300">
+      {/* Decorative Background Blob */}
+      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-orange-100/40 to-transparent dark:from-orange-500/10 blur-3xl pointer-events-none" />
+
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+        <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">
+            <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 tracking-tight">
               Admin Dashboard
             </h2>
-            <p className="text-sm text-gray-600">
-              Central place to manage users, content and events on the
-              platform.
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mt-1">
+              Central place to manage users, content and events on the platform.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="btn-ghost"
-          >
-            Logout
-          </button>
+          <div className="flex items-center gap-4">
+            <span className="inline-flex items-center rounded-full bg-red-50 dark:bg-red-900/30 px-4 py-1.5 text-sm font-bold text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800/50 shadow-sm animate-fade-in hidden sm:inline-flex">
+              <span className="w-2 h-2 rounded-full bg-red-500 dark:bg-red-400 mr-2 animate-pulse"></span>
+              Admin Access Enabled
+            </span>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="btn-ghost shadow-sm hover:shadow-md"
+            >
+              Logout
+            </button>
+          </div>
         </header>
 
         {/* 1. Platform statistics */}
-        <section className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <div className="card p-4 border-l-4 border-l-[#F37021]">
-            <p className="text-xs font-medium text-gray-500">Total Students</p>
-            <p className="mt-2 text-3xl font-semibold text-gray-900">
+        <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="card p-5 border-l-4 border-l-[#F37021] hover:-translate-y-1 transition-transform duration-300">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Total Students</p>
+            <p className="mt-2 text-4xl font-black text-gray-900 dark:text-white">
               {stats?.totalStudents ?? 0}
             </p>
-            <p className="mt-1 text-xs text-gray-400">Active on platform</p>
+            <p className="mt-1 text-xs font-medium text-gray-400 dark:text-gray-500">Active on platform</p>
           </div>
-          <div className="card p-4 border-l-4 border-l-[#F37021]">
-            <p className="text-xs font-medium text-gray-500">Total Alumni</p>
-            <p className="mt-2 text-3xl font-semibold text-gray-900">
+          <div className="card p-5 border-l-4 border-l-blue-500 hover:-translate-y-1 transition-transform duration-300">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Total Alumni</p>
+            <p className="mt-2 text-4xl font-black text-gray-900 dark:text-white">
               {stats?.totalAlumni ?? 0}
             </p>
-            <p className="mt-1 text-xs text-gray-400">Verified mentors</p>
+            <p className="mt-1 text-xs font-medium text-gray-400 dark:text-gray-500">Verified mentors</p>
           </div>
-          <div className="card p-4 border-l-4 border-l-[#F37021]">
-            <p className="text-xs font-medium text-gray-500">
+          <div className="card p-5 border-l-4 border-l-green-500 hover:-translate-y-1 transition-transform duration-300">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
               Mentorship Requests
             </p>
-            <p className="mt-2 text-3xl font-semibold text-gray-900">
+            <p className="mt-2 text-4xl font-black text-gray-900 dark:text-white">
               {stats?.totalMentorshipRequests ?? 0}
             </p>
-            <p className="mt-1 text-xs text-gray-400">Pending approval</p>
+            <p className="mt-1 text-xs font-medium text-gray-400 dark:text-gray-500">Total requests</p>
           </div>
-          <div className="card p-4 border-l-4 border-l-[#F37021]">
-            <p className="text-xs font-medium text-gray-500">Job Referrals</p>
-            <p className="mt-2 text-3xl font-semibold text-gray-900">
+          <div className="card p-5 border-l-4 border-l-purple-500 hover:-translate-y-1 transition-transform duration-300">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Job Referrals</p>
+            <p className="mt-2 text-4xl font-black text-gray-900 dark:text-white">
               {stats?.totalJobReferrals ?? 0}
             </p>
-            <p className="mt-1 text-xs text-gray-400">Posted by alumni</p>
+            <p className="mt-1 text-xs font-medium text-gray-400 dark:text-gray-500">Posted by alumni</p>
           </div>
-          <div className="card p-4 border-l-4 border-l-[#F37021]">
-            <p className="text-xs font-medium text-gray-500">Events</p>
-            <p className="mt-2 text-3xl font-semibold text-gray-900">
+          <div className="card p-5 border-l-4 border-l-rose-500 hover:-translate-y-1 transition-transform duration-300">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Events</p>
+            <p className="mt-2 text-4xl font-black text-gray-900 dark:text-white">
               {stats?.totalEvents ?? 0}
             </p>
-            <p className="mt-1 text-xs text-gray-400">Webinars & meetups</p>
+            <p className="mt-1 text-xs font-medium text-gray-400 dark:text-gray-500">Webinars & meetups</p>
           </div>
         </section>
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-8 lg:grid-cols-3">
           {/* 2. User Management Panel */}
-          <section className="card p-4 lg:col-span-2">
+          <section className="card p-6 lg:col-span-2">
             <div className="card-header">
-              <h3 className="card-title">User Management</h3>
+              <div className="flex items-center gap-3">
+                <div className="bg-gray-100 p-2 rounded-lg text-gray-600">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </div>
+                <h3 className="card-title">User Management</h3>
+              </div>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-6 px-6">
               <table className="min-w-full text-left text-xs text-gray-600">
-                <thead className="border-b border-gray-100 bg-gray-50 text-[11px] uppercase tracking-wide text-gray-500">
+                <thead className="border-b border-gray-100 bg-gray-50/50 text-[10px] font-bold uppercase tracking-wider text-gray-500">
                   <tr>
-                    <th className="px-3 py-2">Name</th>
-                    <th className="px-3 py-2">Email</th>
-                    <th className="px-3 py-2">Role</th>
-                    <th className="px-3 py-2">Company</th>
-                    <th className="px-3 py-2">Branch</th>
-                    <th className="px-3 py-2">Status</th>
-                    <th className="px-3 py-2">Actions</th>
+                    <th className="px-4 py-3 rounded-tl-lg">Name</th>
+                    <th className="px-4 py-3">Email</th>
+                    <th className="px-4 py-3">Role</th>
+                    <th className="px-4 py-3">Company</th>
+                    <th className="px-4 py-3">Branch</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 rounded-tr-lg">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-50">
                   {users.map((user) => (
-                    <tr key={user.id} className="border-b border-gray-50">
-                      <td className="px-3 py-2 text-sm text-gray-900">{user.name}</td>
-                      <td className="px-3 py-2 text-xs text-gray-700">{user.email}</td>
-                      <td className="px-3 py-2 text-xs">{user.role}</td>
-                      <td className="px-3 py-2 text-xs">{user.company || "-"}</td>
-                      <td className="px-3 py-2 text-xs">{user.branch || "-"}</td>
-                      <td className="px-3 py-2 text-xs">
-                        <span className="badge bg-gray-100 text-gray-700 border border-gray-200">
+                    <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-3 text-sm font-bold text-gray-900">{user.name}</td>
+                      <td className="px-4 py-3 text-xs font-medium text-gray-600">{user.email}</td>
+                      <td className="px-4 py-3 text-xs font-medium capitalize">{user.role}</td>
+                      <td className="px-4 py-3 text-xs">{user.company || "-"}</td>
+                      <td className="px-4 py-3 text-xs">{user.branch || "-"}</td>
+                      <td className="px-4 py-3 text-xs">
+                        <span className={`badge ${user.status === 'Suspended' ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
                           {user.status || "Active"}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-xs space-x-1">
-
+                      <td className="px-4 py-3 text-xs space-x-2">
                         <button
                           type="button"
-                          className="btn-ghost px-2 py-1 text-[11px]"
+                          className="font-bold text-yellow-600 hover:text-yellow-800 transition-colors uppercase tracking-wider text-[10px]"
                           onClick={() => handleSuspendUser(user)}
                         >
                           Suspend
                         </button>
                         <button
                           type="button"
-                          className="btn-ghost px-2 py-1 text-[11px] text-red-600"
+                          className="font-bold text-red-600 hover:text-red-800 transition-colors uppercase tracking-wider text-[10px]"
                           onClick={() => handleDeleteUser(user)}
                         >
                           Delete
@@ -259,7 +271,7 @@ const AdminDashboard = () => {
                     <tr>
                       <td
                         colSpan={7}
-                        className="px-3 py-4 text-center text-xs text-gray-500"
+                        className="px-4 py-8 text-center text-sm font-medium text-gray-500 italic"
                       >
                         No users loaded. Ensure the backend admin APIs are running.
                       </td>
@@ -271,32 +283,37 @@ const AdminDashboard = () => {
           </section>
 
           {/* 6. Analytics Section */}
-          <section className="card p-4">
+          <section className="card p-6">
             <div className="card-header">
-              <h3 className="card-title">Key Analytics</h3>
+              <div className="flex items-center gap-3">
+                <div className="bg-[#F37021]/10 p-2 rounded-lg text-[#F37021]">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </div>
+                <h3 className="card-title">Key Analytics</h3>
+              </div>
             </div>
-            <div className="space-y-3 text-sm text-gray-700">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">
+            <div className="space-y-5 text-sm text-gray-700">
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
                   Most Active Alumni
                 </p>
-                <p className="mt-1 font-semibold">
+                <p className="mt-1 font-black text-gray-900 text-lg">
                   {stats?.analytics?.mostActiveAlumni ?? "-"}
                 </p>
               </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
                   Most Requested Mentor
                 </p>
-                <p className="mt-1 font-semibold">
+                <p className="mt-1 font-black text-gray-900 text-lg">
                   {stats?.analytics?.mostRequestedMentor ?? "-"}
                 </p>
               </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
                   Most Popular Event
                 </p>
-                <p className="mt-1 font-semibold">
+                <p className="mt-1 font-black text-gray-900 text-lg">
                   {stats?.analytics?.mostPopularEvent ?? "-"}
                 </p>
               </div>
@@ -304,49 +321,54 @@ const AdminDashboard = () => {
           </section>
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <div className="mt-8 grid gap-8 lg:grid-cols-2">
           {/* 3. Alumni Verification System */}
-          <section className="card p-4">
+          <section className="card p-6">
             <div className="card-header">
-              <h3 className="card-title">Alumni Verification</h3>
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h3 className="card-title">Alumni Verification</h3>
+              </div>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-6 px-6">
               <table className="min-w-full text-left text-xs text-gray-600">
-                <thead className="border-b border-gray-100 bg-gray-50 text-[11px] uppercase tracking-wide text-gray-500">
+                <thead className="border-b border-gray-100 bg-gray-50/50 text-[10px] font-bold uppercase tracking-wider text-gray-500">
                   <tr>
-                    <th className="px-3 py-2">Name</th>
-                    <th className="px-3 py-2">Company</th>
-                    <th className="px-3 py-2">Graduation Year</th>
-                    <th className="px-3 py-2">Status</th>
-                    <th className="px-3 py-2">Actions</th>
+                    <th className="px-4 py-3 rounded-tl-lg">Name</th>
+                    <th className="px-4 py-3">Company</th>
+                    <th className="px-4 py-3">Grad Year</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 rounded-tr-lg">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-50">
                   {pendingAlumni.map((alumni) => (
-                    <tr key={alumni.id} className="border-b border-gray-50">
-                      <td className="px-3 py-2 text-sm text-gray-900">
+                    <tr key={alumni.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-3 text-sm font-bold text-gray-900">
                         {alumni.name}
                       </td>
-                      <td className="px-3 py-2 text-xs">{alumni.company}</td>
-                      <td className="px-3 py-2 text-xs">
+                      <td className="px-4 py-3 text-xs font-medium">{alumni.company}</td>
+                      <td className="px-4 py-3 text-xs font-medium">
                         {alumni.graduationYear}
                       </td>
-                      <td className="px-3 py-2 text-xs">
-                        <span className="badge bg-gray-100 text-gray-700 border border-gray-200">
+                      <td className="px-4 py-3 text-xs">
+                        <span className="badge bg-yellow-50 text-yellow-700 border border-yellow-100">
                           {alumni.verificationStatus}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-xs space-x-1">
+                      <td className="px-4 py-3 text-xs space-x-2">
                         <button
                           type="button"
-                          className="btn-ghost px-2 py-1 text-[11px] text-green-700"
+                          className="font-bold text-green-600 hover:text-green-800 transition-colors uppercase tracking-wider text-[10px]"
                           onClick={() => handleApproveAlumni(alumni)}
                         >
                           Approve
                         </button>
                         <button
                           type="button"
-                          className="btn-ghost px-2 py-1 text-[11px] text-red-600"
+                          className="font-bold text-red-600 hover:text-red-800 transition-colors uppercase tracking-wider text-[10px]"
                           onClick={() => handleRejectAlumni(alumni)}
                         >
                           Reject
@@ -358,7 +380,7 @@ const AdminDashboard = () => {
                     <tr>
                       <td
                         colSpan={5}
-                        className="px-3 py-4 text-center text-xs text-gray-500"
+                        className="px-4 py-8 text-center text-sm font-medium text-gray-500 italic"
                       >
                         No pending alumni for verification.
                       </td>
@@ -370,32 +392,37 @@ const AdminDashboard = () => {
           </section>
 
           {/* 4. Content Moderation */}
-          <section className="card p-4">
+          <section className="card p-6">
             <div className="card-header">
-              <h3 className="card-title">Content Moderation</h3>
+              <div className="flex items-center gap-3">
+                <div className="bg-red-50 p-2 rounded-lg text-red-600">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <h3 className="card-title">Content Moderation</h3>
+              </div>
             </div>
-            <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+            <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
               {moderationPosts.map((post) => (
                 <div
                   key={post.id}
-                  className="rounded-lg border border-gray-100 bg-gray-50 p-3 text-xs text-gray-700"
+                  className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 hover:bg-white hover:shadow-sm transition-all"
                 >
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold text-gray-900 text-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-bold text-gray-900 text-sm">
                       {post.author}
                     </p>
-                    <p className="text-[11px] text-gray-400">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
                       {new Date(post.createdAt).toLocaleDateString("en-IN", {
                         day: "2-digit",
                         month: "short"
                       })}
                     </p>
                   </div>
-                  <p className="mt-1 text-xs">{post.description}</p>
-                  <div className="mt-2 flex justify-end">
+                  <p className="text-sm font-medium text-gray-600 line-clamp-2 leading-relaxed">{post.description}</p>
+                  <div className="mt-3 flex justify-end">
                     <button
                       type="button"
-                      className="btn-ghost px-3 py-1 text-[11px] text-red-600"
+                      className="font-bold text-red-600 hover:text-red-800 transition-colors uppercase tracking-wider text-[10px]"
                       onClick={() => handleDeletePost(post)}
                     >
                       Delete Post
@@ -404,7 +431,7 @@ const AdminDashboard = () => {
                 </div>
               ))}
               {moderationPosts.length === 0 && (
-                <p className="text-xs text-gray-500">
+                <p className="text-sm font-medium text-gray-500 italic text-center py-4">
                   No posts available for moderation.
                 </p>
               )}
@@ -413,50 +440,57 @@ const AdminDashboard = () => {
         </div>
 
         {/* 5. Event Management & 7. Activity Log */}
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <section className="card p-4">
+        <div className="mt-8 grid gap-8 lg:grid-cols-2">
+          <section className="card p-6">
             <div className="card-header">
-              <h3 className="card-title">Event Management</h3>
+              <div className="flex items-center gap-3">
+                <div className="bg-orange-50 p-2 rounded-lg text-orange-600">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <h3 className="card-title">Event Management</h3>
+              </div>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-6 px-6">
               <table className="min-w-full text-left text-xs text-gray-600">
-                <thead className="border-b border-gray-100 bg-gray-50 text-[11px] uppercase tracking-wide text-gray-500">
+                <thead className="border-b border-gray-100 bg-gray-50/50 text-[10px] font-bold uppercase tracking-wider text-gray-500">
                   <tr>
-                    <th className="px-3 py-2">Event Title</th>
-                    <th className="px-3 py-2">Host</th>
-                    <th className="px-3 py-2">Date</th>
-                    <th className="px-3 py-2">Registered Students</th>
-                    <th className="px-3 py-2">Actions</th>
+                    <th className="px-4 py-3 rounded-tl-lg">Event Title</th>
+                    <th className="px-4 py-3">Host</th>
+                    <th className="px-4 py-3">Date</th>
+                    <th className="px-4 py-3">Registrations</th>
+                    <th className="px-4 py-3 rounded-tr-lg">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-50">
                   {managedEvents.map((event) => (
-                    <tr key={event.id} className="border-b border-gray-50">
-                      <td className="px-3 py-2 text-sm text-gray-900">
+                    <tr key={event.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-3 text-sm font-bold text-gray-900">
                         {event.title}
                       </td>
-                      <td className="px-3 py-2 text-xs">{event.host || "-"}</td>
-                      <td className="px-3 py-2 text-xs">
+                      <td className="px-4 py-3 text-xs font-medium">{event.host || "-"}</td>
+                      <td className="px-4 py-3 text-xs font-medium">
                         {new Date(event.date).toLocaleDateString("en-IN", {
                           day: "2-digit",
                           month: "short",
                           year: "numeric"
                         })}
                       </td>
-                      <td className="px-3 py-2 text-xs">
-                        {event.registeredStudents}
+                      <td className="px-4 py-3 text-xs font-medium">
+                        <span className="badge bg-gray-100 text-gray-700 border border-gray-200">
+                          {event.registeredStudents} users
+                        </span>
                       </td>
-                      <td className="px-3 py-2 text-xs space-x-1">
+                      <td className="px-4 py-3 text-xs space-x-2">
                         <button
                           type="button"
-                          className="btn-ghost px-2 py-1 text-[11px]"
+                          className="font-bold text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-wider text-[10px]"
                           onClick={() => handleEditEvent(event)}
                         >
                           Edit
                         </button>
                         <button
                           type="button"
-                          className="btn-ghost px-2 py-1 text-[11px] text-red-600"
+                          className="font-bold text-red-600 hover:text-red-800 transition-colors uppercase tracking-wider text-[10px]"
                           onClick={() => handleDeleteEvent(event)}
                         >
                           Delete
@@ -468,7 +502,7 @@ const AdminDashboard = () => {
                     <tr>
                       <td
                         colSpan={5}
-                        className="px-3 py-4 text-center text-xs text-gray-500"
+                        className="px-4 py-8 text-center text-sm font-medium text-gray-500 italic"
                       >
                         No events found for management.
                       </td>
@@ -480,19 +514,24 @@ const AdminDashboard = () => {
           </section>
 
           {/* Admin activity log */}
-          <section className="card p-4">
+          <section className="card p-6">
             <div className="card-header">
-              <h3 className="card-title">Admin Activity Log</h3>
+              <div className="flex items-center gap-3">
+                <div className="bg-teal-50 p-2 rounded-lg text-teal-600">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                </div>
+                <h3 className="card-title">Activity Log</h3>
+              </div>
             </div>
-            <div className="max-h-80 space-y-2 overflow-y-auto pr-1 text-xs text-gray-700">
+            <div className="max-h-[300px] space-y-3 overflow-y-auto pr-2 custom-scrollbar text-sm text-gray-700">
               {activityLog.map((entry) => (
                 <div
                   key={entry.id}
-                  className="flex items-start gap-2 rounded-lg bg-gray-50 p-2"
+                  className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-3 hover:bg-white transition-colors"
                 >
-                  <div className="mt-[3px] h-2 w-2 flex-shrink-0 rounded-full bg-[#F37021]" />
+                  <div className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-[#F37021]" />
                   <div>
-                    <p className="text-[11px] text-gray-400">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-0.5">
                       {entry.createdAt
                         ? new Date(entry.createdAt).toLocaleString("en-IN", {
                             day: "2-digit",
@@ -502,14 +541,13 @@ const AdminDashboard = () => {
                           })
                         : ""}
                     </p>
-                    <p className="text-xs text-gray-700">{entry.action}</p>
+                    <p className="text-xs font-medium text-gray-700 leading-snug">{entry.action}</p>
                   </div>
                 </div>
               ))}
               {activityLog.length === 0 && (
-                <p className="text-xs text-gray-500">
-                  Recent admin actions will appear here as you manage the
-                  platform.
+                <p className="text-sm font-medium text-gray-500 italic text-center py-4">
+                  Recent admin actions will appear here.
                 </p>
               )}
             </div>
