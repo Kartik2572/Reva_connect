@@ -85,7 +85,7 @@ const LoginPage = () => {
             </svg>
           </div>
           <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300 tracking-tight mb-2">
-            RevaConnect
+            REVA-Connect
           </h1>
           <p className="text-xs text-[#F37021] font-bold tracking-[0.2em] uppercase">
             Alumni & Student Hub
@@ -95,7 +95,7 @@ const LoginPage = () => {
         {/* Login Card */}
         <div className="w-full bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 sm:p-10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] relative overflow-hidden group/card hover:border-white/20 transition-all duration-500">
           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 pointer-events-none" />
-          
+
           <div className="mb-8 text-center">
             <h2 className="text-2xl font-bold text-white mb-1.5">Welcome Back</h2>
             <p className="text-sm text-gray-400 font-medium">Sign in to your account to continue</p>
