@@ -74,10 +74,10 @@ export const getAlumni = async (req, res) => {
        ORDER BY a.name`,
       params
     );
-    res.json({ data: result.rows.map(formatAlumniRow) });
+    res.json({ success: true, data: result.rows.map(formatAlumniRow) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching alumni" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -92,13 +92,13 @@ export const getAlumnusById = async (req, res) => {
     );
 
     if (!result.rows.length) {
-      return res.status(404).json({ message: "Alumnus not found" });
+      return res.status(404).json({ success: false, message: "Alumnus not found" });
     }
 
-    res.json({ data: formatAlumniRow(result.rows[0]) });
+    res.json({ success: true, data: formatAlumniRow(result.rows[0]) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching alumnus" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -117,21 +117,21 @@ export const createAlumnus = async (req, res) => {
       verificationStatus = "Pending"
     } = req.body;
 
-    if (!name) {
-      return res.status(400).json({ message: "Name is required" });
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ success: false, message: "Name is required" });
     }
 
     const result = await pool.query(
       `INSERT INTO alumni (name, role, company, branch_or_company, graduation_year, experience, domain, location, status, verification_status)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING id, name, role, company, branch_or_company AS "branchOrCompany", graduation_year AS "graduationYear", experience, domain, location, status, verification_status AS "verificationStatus"`,
-      [name, role, company, branchOrCompany, graduationYear, experience, domain, location, status, verificationStatus]
+      [String(name).trim(), role, company, branchOrCompany, graduationYear, experience, domain, location, status, verificationStatus]
     );
 
-    res.status(201).json({ data: formatAlumniRow(result.rows[0]) });
+    res.status(201).json({ success: true, data: formatAlumniRow(result.rows[0]) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error creating alumnus" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -165,7 +165,7 @@ export const updateAlumnus = async (req, res) => {
     });
 
     if (!updateFields.length && email === undefined) {
-      return res.status(400).json({ message: "No update fields provided" });
+      return res.status(400).json({ success: false, message: "No update fields provided" });
     }
 
     await client.query("BEGIN");
@@ -177,7 +177,7 @@ export const updateAlumnus = async (req, res) => {
 
     if (!currentResult.rows.length) {
       await client.query("ROLLBACK");
-      return res.status(404).json({ message: "Alumnus not found" });
+      return res.status(404).json({ success: false, message: "Alumnus not found" });
     }
 
     const currentName = currentResult.rows[0].name;
@@ -189,7 +189,7 @@ export const updateAlumnus = async (req, res) => {
 
       if (!updateResult.rows.length) {
         await client.query("ROLLBACK");
-        return res.status(404).json({ message: "Alumnus not found" });
+        return res.status(404).json({ success: false, message: "Alumnus not found" });
       }
     }
 
@@ -232,11 +232,11 @@ export const updateAlumnus = async (req, res) => {
       [id]
     );
 
-    res.json({ data: formatAlumniRow(finalResult.rows[0]) });
+    res.json({ success: true, data: formatAlumniRow(finalResult.rows[0]) });
   } catch (error) {
     await client.query("ROLLBACK");
     console.error(error);
-    res.status(500).json({ message: "Error updating alumnus" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   } finally {
     client.release();
   }
@@ -248,12 +248,12 @@ export const deleteAlumnus = async (req, res) => {
     const result = await pool.query("DELETE FROM alumni WHERE id = $1 RETURNING id", [id]);
 
     if (!result.rows.length) {
-      return res.status(404).json({ message: "Alumnus not found" });
+      return res.status(404).json({ success: false, message: "Alumnus not found" });
     }
 
-    res.status(204).send();
+    res.status(200).json({ success: true, message: "Alumnus deleted" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error deleting alumnus" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

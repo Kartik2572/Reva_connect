@@ -14,7 +14,7 @@ import {
   updateEvent,
   deleteEvent
 } from "../controllers/eventController.js";
-import { verifyToken } from "../middleware/authMiddleware.js";
+import { verifyToken, isAlumni } from "../middleware/authMiddleware.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -44,15 +44,17 @@ const upload = multer({
 
 const router = express.Router();
 
+router.use(verifyToken);
+
 router.get("/", getEvents);
 router.get("/upcoming-alumni", getUpcomingAlumniEvents);
 router.get("/other-alumni/:host", getOtherAlumniHostedEvents);
-router.post("/register", verifyToken, registerForEvent);
-router.get("/user/registrations", verifyToken, getUserRegistrations);
-router.post("/", verifyToken, upload.single("attachment"), createEvent);
-router.get("/:id/registrations", verifyToken, getEventRegistrations);
-router.put("/:id", verifyToken, updateEvent);
-router.delete("/:id", verifyToken, deleteEvent);
+router.post("/register", registerForEvent);
+router.get("/user/registrations", getUserRegistrations);
+router.post("/", isAlumni, upload.single("attachment"), createEvent);
+router.get("/:id/registrations", getEventRegistrations);
+router.put("/:id", isAlumni, updateEvent);
+router.delete("/:id", isAlumni, deleteEvent);
 router.get("/host/:host", getEventsByHost);
 
 export default router;

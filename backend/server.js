@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import authRoutes from "./routes/authRoutes.js";
@@ -20,8 +22,37 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Basic middleware configuration
-app.use(cors());
+app.use(helmet());
+app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" })); // to allow images/uploads across origins
+
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json());
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 150, // Limit each IP to 150 requests per `window`
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: "Too many requests, please try again later." }
+});
+app.use("/api", apiLimiter);
+
 app.use("/uploads", express.static(join(__dirname, "uploads")));
 
 // Health check route

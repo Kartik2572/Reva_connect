@@ -50,19 +50,21 @@ export const getJobReferrals = async (req, res) => {
        ORDER BY j.created_at DESC`,
       params
     );
-    res.json({ data: result.rows.map(formatJobReferral) });
+    res.json({ success: true, data: result.rows.map(formatJobReferral) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching job referrals" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const getJobApplicationsForStudent = async (req, res) => {
   try {
-    const { studentId } = req.params;
-    const sid = Number(studentId);
+    const sid = req.user.role === 'admin' && req.params.studentId 
+      ? Number(req.params.studentId) 
+      : req.user.id;
+      
     if (!Number.isInteger(sid) || sid < 1) {
-      return res.status(400).json({ message: "Invalid student id" });
+      return res.status(400).json({ success: false, message: "Invalid student id" });
     }
 
     const userCheck = await pool.query(
@@ -70,7 +72,7 @@ export const getJobApplicationsForStudent = async (req, res) => {
       [sid]
     );
     if (!userCheck.rows.length) {
-      return res.status(400).json({ message: "Student not found" });
+      return res.status(400).json({ success: false, message: "Student not found" });
     }
 
     const result = await pool.query(
@@ -84,24 +86,25 @@ export const getJobApplicationsForStudent = async (req, res) => {
        ORDER BY ja.applied_at DESC`,
       [sid]
     );
-    res.json({ data: result.rows.map(formatJobApplication) });
+    res.json({ success: true, data: result.rows.map(formatJobApplication) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching job applications" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const createJobApplication = async (req, res) => {
   try {
-    const { student_id, job_referral_id } = req.body;
+    const { job_referral_id } = req.body;
+    const student_id = req.user.id;
 
-    if (student_id == null || job_referral_id == null) {
-      return res.status(400).json({ message: "student_id and job_referral_id are required" });
+    if (job_referral_id == null) {
+      return res.status(400).json({ success: false, message: "job_referral_id is required" });
     }
 
     const sid = Number(student_id);
     if (!Number.isInteger(sid) || sid < 1) {
-      return res.status(400).json({ message: "Invalid student_id" });
+      return res.status(400).json({ success: false, message: "Invalid student_id" });
     }
 
     const userCheck = await pool.query(
@@ -109,12 +112,12 @@ export const createJobApplication = async (req, res) => {
       [sid]
     );
     if (!userCheck.rows.length) {
-      return res.status(400).json({ message: "Student not found" });
+      return res.status(400).json({ success: false, message: "Student not found" });
     }
 
     const refCheck = await pool.query(`SELECT id FROM job_referrals WHERE id = $1`, [job_referral_id]);
     if (!refCheck.rows.length) {
-      return res.status(404).json({ message: "Job referral not found" });
+      return res.status(404).json({ success: false, message: "Job referral not found" });
     }
 
     const result = await pool.query(
@@ -138,27 +141,31 @@ export const createJobApplication = async (req, res) => {
       [row.id]
     );
 
-    res.status(201).json({ data: formatJobApplication(detail.rows[0]) });
+    console.log({
+      user: req.user.id,
+      action: "Applied for job",
+      job_referral_id
+    });
+
+    res.status(201).json({ success: true, data: formatJobApplication(detail.rows[0]) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error creating job application" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const createJobReferral = async (req, res) => {
   try {
-    const { alumni_id, job_title, company, description, location, job_link } = req.body;
+    const { job_title, company, description, location, job_link } = req.body;
+    const alumni_id = req.user.id;
 
-    if (!alumni_id) {
-      return res.status(400).json({ message: "alumni_id is required" });
-    }
     if (!job_title || !String(job_title).trim()) {
-      return res.status(400).json({ message: "job_title is required" });
+      return res.status(400).json({ success: false, message: "job_title is required" });
     }
 
     const exists = await pool.query(`SELECT id FROM alumni WHERE id = $1`, [alumni_id]);
     if (!exists.rows.length) {
-      return res.status(400).json({ message: "Invalid alumni_id" });
+      return res.status(400).json({ success: false, message: "Invalid alumni_id" });
     }
 
     const nameRes = await pool.query(`SELECT name FROM alumni WHERE id = $1`, [alumni_id]);
@@ -182,10 +189,16 @@ export const createJobReferral = async (req, res) => {
     const row = result.rows[0];
     row.alumni_name = alumniName;
 
-    res.status(201).json({ data: formatJobReferral(row) });
+    console.log({
+      user: req.user.id,
+      action: "Created job referral",
+      job_referral_id: row.id
+    });
+
+    res.status(201).json({ success: true, data: formatJobReferral(row) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error creating job referral" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -198,7 +211,7 @@ export const getAdminJobReferrals = async (req, res) => {
        JOIN alumni a ON j.alumni_id = a.id
        ORDER BY j.created_at DESC`
     );
-    res.json({ data: result.rows.map(row => ({
+    res.json({ success: true, data: result.rows.map(row => ({
       id: row.id,
       alumniId: row.alumni_id,
       alumniName: row.alumni_name,
@@ -214,7 +227,7 @@ export const getAdminJobReferrals = async (req, res) => {
     })) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching admin job referrals" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -224,7 +237,7 @@ export const updateJobReferralStatus = async (req, res) => {
     const { status, isFlagged } = req.body;
 
     if (status && !['Active', 'Archived'].includes(status)) {
-      return res.status(400).json({ message: "Invalid status" });
+      return res.status(400).json({ success: false, message: "Invalid status" });
     }
 
     const fields = [];
@@ -241,7 +254,7 @@ export const updateJobReferralStatus = async (req, res) => {
     }
 
     if (!fields.length) {
-      return res.status(400).json({ message: "No fields to update" });
+      return res.status(400).json({ success: false, message: "No fields to update" });
     }
 
     values.push(id);
@@ -249,13 +262,13 @@ export const updateJobReferralStatus = async (req, res) => {
     const result = await pool.query(query, values);
 
     if (!result.rows.length) {
-      return res.status(404).json({ message: "Job referral not found" });
+      return res.status(404).json({ success: false, message: "Job referral not found" });
     }
 
     const row = result.rows[0];
     const nameRes = await pool.query(`SELECT name FROM alumni WHERE id = $1`, [row.alumni_id]);
     
-    res.json({ data: {
+    res.json({ success: true, data: {
       id: row.id,
       alumniId: row.alumni_id,
       alumniName: nameRes.rows[0]?.name || null,
@@ -271,7 +284,7 @@ export const updateJobReferralStatus = async (req, res) => {
     } });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error updating job referral" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -281,10 +294,10 @@ export const getJobs = async (req, res) => {
       `SELECT id, title, company, posted_by AS "postedBy", created_at AS "createdAt"
        FROM jobs ORDER BY created_at DESC`
     );
-    res.json({ data: result.rows });
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching jobs" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -293,7 +306,7 @@ export const createJob = async (req, res) => {
     const { title, company, postedBy } = req.body;
 
     if (!title || !company || !postedBy) {
-      return res.status(400).json({ message: "Title, company, and postedBy are required" });
+      return res.status(400).json({ success: false, message: "Title, company, and postedBy are required" });
     }
 
     const result = await pool.query(
@@ -303,10 +316,10 @@ export const createJob = async (req, res) => {
       [title, company, postedBy]
     );
 
-    res.status(201).json({ data: result.rows[0] });
+    res.status(201).json({ success: true, data: result.rows[0] });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error creating job" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -329,7 +342,7 @@ export const updateJob = async (req, res) => {
     });
 
     if (!fields.length) {
-      return res.status(400).json({ message: "No fields provided for update" });
+      return res.status(400).json({ success: false, message: "No fields provided for update" });
     }
 
     values.push(id);
@@ -337,13 +350,13 @@ export const updateJob = async (req, res) => {
     const result = await pool.query(query, values);
 
     if (!result.rows.length) {
-      return res.status(404).json({ message: "Job not found" });
+      return res.status(404).json({ success: false, message: "Job not found" });
     }
 
-    res.json({ data: result.rows[0] });
+    res.json({ success: true, data: result.rows[0] });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error updating job" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -353,12 +366,12 @@ export const deleteJob = async (req, res) => {
     const result = await pool.query("DELETE FROM jobs WHERE id = $1 RETURNING id", [id]);
 
     if (!result.rows.length) {
-      return res.status(404).json({ message: "Job not found" });
+      return res.status(404).json({ success: false, message: "Job not found" });
     }
 
-    res.status(204).send();
+    res.status(200).json({ success: true, message: "Job deleted" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error deleting job" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

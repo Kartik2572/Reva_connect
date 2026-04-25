@@ -4,7 +4,7 @@ export const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "No token provided" });
+    return res.status(401).json({ success: false, message: "No token provided" });
   }
 
   try {
@@ -14,13 +14,20 @@ export const verifyToken = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(401).json({ message: "Invalid token" });
+    return res.status(401).json({ success: false, message: "Invalid token" });
   }
+};
+
+export const isAlumni = (req, res, next) => {
+  if (!req.user || (req.user.role !== "alumni" && req.user.role !== "admin")) {
+    return res.status(403).json({ success: false, message: "Only alumni allowed" });
+  }
+  next();
 };
 
 export const isAdmin = (req, res, next) => {
   if (!req.user || req.user.role !== "admin") {
-    return res.status(403).json({ message: "Access denied" });
+    return res.status(403).json({ success: false, message: "Access denied" });
   }
   next();
 };

@@ -27,10 +27,10 @@ export const getAllStudents = async (req, res) => {
       data: result.rows
     });
   } catch (error) {
-    console.error("Get students error:", error.message);
+    console.error("Get students error:", error);
     res.status(500).json({
       success: false,
-      message: error.message || "Error fetching students"
+      message: "Internal server error"
     });
   }
 };
@@ -61,10 +61,10 @@ export const getConnectionStatus = async (req, res) => {
       data: result.rows[0] || null
     });
   } catch (error) {
-    console.error("Get connection status error:", error.message);
+    console.error("Get connection status error:", error);
     res.status(500).json({
       success: false,
-      message: error.message || "Error fetching connection status"
+      message: "Internal server error"
     });
   }
 };
@@ -100,10 +100,10 @@ export const getMyConnections = async (req, res) => {
       data: result.rows
     });
   } catch (error) {
-    console.error("Get my connections error:", error.message);
+    console.error("Get my connections error:", error);
     res.status(500).json({
       success: false,
-      message: error.message || "Error fetching connections"
+      message: "Internal server error"
     });
   }
 };
@@ -164,10 +164,10 @@ export const sendConnectionRequest = async (req, res) => {
       data: result.rows[0]
     });
   } catch (error) {
-    console.error("Send connection request error:", error.message);
+    console.error("Send connection request error:", error);
     res.status(500).json({
       success: false,
-      message: error.message || "Error sending connection request"
+      message: "Internal server error"
     });
   }
 };
@@ -220,10 +220,10 @@ export const acceptConnectionRequest = async (req, res) => {
       data: result.rows[0]
     });
   } catch (error) {
-    console.error("Accept connection request error:", error.message);
+    console.error("Accept connection request error:", error);
     res.status(500).json({
       success: false,
-      message: error.message || "Error accepting connection request"
+      message: "Internal server error"
     });
   }
 };
@@ -269,10 +269,10 @@ export const rejectConnectionRequest = async (req, res) => {
       data: result.rows[0]
     });
   } catch (error) {
-    console.error("Reject connection request error:", error.message);
+    console.error("Reject connection request error:", error);
     res.status(500).json({
       success: false,
-      message: error.message || "Error rejecting connection request"
+      message: "Internal server error"
     });
   }
 };
@@ -303,10 +303,10 @@ export const getPendingRequests = async (req, res) => {
       data: result.rows
     });
   } catch (error) {
-    console.error("Get pending requests error:", error.message);
+    console.error("Get pending requests error:", error);
     res.status(500).json({
       success: false,
-      message: error.message || "Error fetching pending requests"
+      message: "Internal server error"
     });
   }
 };

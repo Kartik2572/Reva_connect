@@ -12,15 +12,16 @@ const normalizeStatus = (status) => {
 
 export const createMentorshipRequest = async (req, res) => {
   try {
-    const { studentId, mentorId } = req.body;
+    const { mentorId } = req.body;
+    const studentId = req.user.id;
 
-    if (studentId == null || mentorId == null) {
-      return res.status(400).json({ message: "studentId and mentorId are required" });
+    if (mentorId == null) {
+      return res.status(400).json({ success: false, message: "mentorId is required" });
     }
 
     const sid = Number(studentId);
     if (!Number.isInteger(sid) || sid < 1) {
-      return res.status(400).json({ message: "studentId must be a valid user id" });
+      return res.status(400).json({ success: false, message: "studentId must be a valid user id" });
     }
 
     const studentCheck = await pool.query(
@@ -28,12 +29,12 @@ export const createMentorshipRequest = async (req, res) => {
       [sid]
     );
     if (!studentCheck.rows.length) {
-      return res.status(400).json({ message: "Student not found" });
+      return res.status(400).json({ success: false, message: "Student not found" });
     }
 
     const mentorCheck = await pool.query(`SELECT id FROM alumni WHERE id = $1`, [mentorId]);
     if (!mentorCheck.rows.length) {
-      return res.status(400).json({ message: "Mentor not found" });
+      return res.status(400).json({ success: false, message: "Mentor not found" });
     }
 
     const result = await pool.query(
@@ -43,10 +44,16 @@ export const createMentorshipRequest = async (req, res) => {
       [sid, mentorId, "Pending"]
     );
 
-    res.status(201).json({ data: result.rows[0] });
+    console.log({
+      user: req.user.id,
+      action: "Created mentorship request",
+      mentor_id: mentorId
+    });
+
+    res.status(201).json({ success: true, data: result.rows[0] });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error creating mentorship request" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -61,19 +68,21 @@ export const getMentorshipRequests = async (req, res) => {
        JOIN alumni a ON a.id = m.mentor_id
        ORDER BY m.created_at DESC`
     );
-    res.json({ data: result.rows });
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching mentorship requests" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const getMentorshipRequestsForStudent = async (req, res) => {
   try {
-    const { studentId } = req.params;
-    const sid = Number(studentId);
+    const sid = req.user.role === 'admin' && req.params.studentId 
+      ? Number(req.params.studentId) 
+      : req.user.id;
+      
     if (!Number.isInteger(sid)) {
-      return res.status(400).json({ message: "Invalid student id" });
+      return res.status(400).json({ success: false, message: "Invalid student id" });
     }
 
     const result = await pool.query(
@@ -85,10 +94,10 @@ export const getMentorshipRequestsForStudent = async (req, res) => {
        ORDER BY m.created_at DESC`,
       [sid]
     );
-    res.json({ data: result.rows });
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching mentorship requests for student" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -104,21 +113,22 @@ export const getMentorshipRequestsForAlumnus = async (req, res) => {
        ORDER BY m.created_at DESC`,
       [alumnusId]
     );
-    res.json({ data: result.rows });
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching mentorship requests for alumnus" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const updateMentorshipRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, mentorId } = req.body;
+    const { status } = req.body;
+    const mentorId = req.user.id;
     const normalized = normalizeStatus(status);
 
     if (!normalized) {
-      return res.status(400).json({ message: "Status must be Pending, Accepted, or Rejected" });
+      return res.status(400).json({ success: false, message: "Status must be Pending, Accepted, or Rejected" });
     }
 
     const existing = await pool.query(
@@ -126,13 +136,11 @@ export const updateMentorshipRequest = async (req, res) => {
       [id]
     );
     if (!existing.rows.length) {
-      return res.status(404).json({ message: "Request not found" });
+      return res.status(404).json({ success: false, message: "Request not found" });
     }
 
-    if (mentorId !== undefined && mentorId !== null && mentorId !== "") {
-      if (String(existing.rows[0].mentorId) !== String(mentorId)) {
-        return res.status(403).json({ message: "Not allowed to update this request" });
-      }
+    if (req.user.role !== 'admin' && String(existing.rows[0].mentorId) !== String(mentorId)) {
+      return res.status(403).json({ success: false, message: "Not allowed to update this request" });
     }
 
     const result = await pool.query(
@@ -141,10 +149,10 @@ export const updateMentorshipRequest = async (req, res) => {
       [normalized, id]
     );
 
-    res.json({ data: result.rows[0] });
+    res.json({ success: true, data: result.rows[0] });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error updating mentorship request" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -154,12 +162,12 @@ export const deleteMentorshipRequest = async (req, res) => {
     const result = await pool.query("DELETE FROM mentorship_requests WHERE id = $1 RETURNING id", [id]);
 
     if (!result.rows.length) {
-      return res.status(404).json({ message: "Request not found" });
+      return res.status(404).json({ success: false, message: "Request not found" });
     }
 
-    res.status(204).send();
+    res.status(200).json({ success: true, message: "Mentorship request deleted" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error deleting mentorship request" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

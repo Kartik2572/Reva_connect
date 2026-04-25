@@ -1,7 +1,10 @@
 import express from "express";
 import { createMentorshipRequest, getMentorshipRequests, getMentorshipRequestsForStudent, getMentorshipRequestsForAlumnus, updateMentorshipRequest, deleteMentorshipRequest } from "../controllers/mentorshipController.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+router.use(verifyToken);
 
 // POST /api/mentorship/request
 router.post("/request", createMentorshipRequest);

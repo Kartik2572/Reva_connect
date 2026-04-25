@@ -17,6 +17,7 @@ export const getAdminStats = async (req, res) => {
     ]);
 
     return res.json({
+      success: true,
       data: {
         totalStudents: Number(studentsRes.rows[0].count),
         totalAlumni: Number(alumniRes.rows[0].count),
@@ -33,7 +34,7 @@ export const getAdminStats = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching admin stats" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -43,29 +44,30 @@ export const getAdminUsers = async (req, res) => {
       `SELECT id, name, email, role, branch, created_at AS "createdAt"
        FROM users ORDER BY name`
     );
-    res.json({ data: result.rows });
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error(error);
     if (error.code === "28P01") {
       return res.status(500).json({
+        success: false,
         message: "Database authentication failed. Check DB_USER and DB_PASSWORD in backend/.env."
       });
     }
-    res.status(500).json({ message: error.message || "Error fetching users" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const deleteAdminUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { adminName = "Admin" } = req.body;
+    const adminName = req.user.name || "Admin";
     const result = await pool.query(
       "DELETE FROM users WHERE id = $1 RETURNING id, name, email, role",
       [id]
     );
 
     if (!result.rows.length) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
     const deletedUser = result.rows[0];
@@ -80,7 +82,7 @@ export const deleteAdminUser = async (req, res) => {
     res.json({ success: true, data: deletedUser });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error deleting user" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -90,17 +92,18 @@ export const getPendingAlumni = async (req, res) => {
       `SELECT id, name, role, company, branch_or_company AS "branchOrCompany", graduation_year AS "graduationYear", experience, domain, location, status, verification_status AS "verificationStatus"
        FROM alumni WHERE status = 'Pending' ORDER BY name`
     );
-    res.json({ data: result.rows });
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching pending alumni" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const updatePendingAlumniStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { action = "approve", adminName = "Admin" } = req.body;
+    const { action = "approve" } = req.body;
+    const adminName = req.user.name || "Admin";
     const status = action === "reject" ? "Rejected" : "Approved";
     const verificationStatus = status;
 
@@ -110,14 +113,14 @@ export const updatePendingAlumniStatus = async (req, res) => {
     );
 
     if (!result.rows.length) {
-      return res.status(404).json({ message: "Pending alumni not found" });
+      return res.status(404).json({ success: false, message: "Pending alumni not found" });
     }
 
     await logAdminActivity(adminName, `Admin ${adminName} ${action === "reject" ? "rejected" : "approved"} alumni ${result.rows[0].name}`);
-    res.json({ data: result.rows[0] });
+    res.json({ success: true, data: result.rows[0] });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error updating alumni verification status" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -127,10 +130,10 @@ export const getAdminPosts = async (req, res) => {
       `SELECT id, author, title, description, category, link_url AS "linkUrl", tags, visibility, created_at AS "createdAt", likes
        FROM posts ORDER BY created_at DESC`
     );
-    res.json({ data: result.rows });
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching posts" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -139,10 +142,10 @@ export const getAdminEvents = async (req, res) => {
     const result = await pool.query(
       "SELECT id, title, description, host, date, time, mode, registered_students AS \"registeredStudents\" FROM events ORDER BY date DESC"
     );
-    res.json({ data: result.rows });
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching events" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -161,37 +164,38 @@ export const getAdminActivityLogs = async (req, res) => {
        FROM activity_logs ORDER BY created_at DESC ${limitSql}`,
       params
     );
-    res.json({ data: result.rows });
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching activity logs" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const createAdminActivityLog = async (req, res) => {
   try {
-    const { adminName = "Admin", action } = req.body;
+    const { action } = req.body;
+    const adminName = req.user.name || "Admin";
 
     if (!action) {
-      return res.status(400).json({ message: "Action message is required" });
+      return res.status(400).json({ success: false, message: "Action message is required" });
     }
 
     await logAdminActivity(adminName, action);
     res.status(201).json({ success: true });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error creating activity log" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const deleteAdminPost = async (req, res) => {
   try {
     const { id } = req.params;
-    const { adminName = "Admin" } = req.body;
+    const adminName = req.user.name || "Admin";
     const result = await pool.query(`DELETE FROM posts WHERE id = $1 RETURNING author, title`, [id]);
 
     if (!result.rows.length) {
-      return res.status(404).json({ message: "Post not found" });
+      return res.status(404).json({ success: false, message: "Post not found" });
     }
 
     const { author, title } = result.rows[0];
@@ -202,7 +206,7 @@ export const deleteAdminPost = async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error deleting post" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -224,10 +228,10 @@ export const getUserRegistrationTrends = async (req, res) => {
       count: Number(row.count)
     }));
 
-    res.json({ data });
+    res.json({ success: true, data });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching user registration trends" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -248,10 +252,10 @@ export const getAlumniByGraduationYear = async (req, res) => {
       count: Number(row.count)
     }));
 
-    res.json({ data });
+    res.json({ success: true, data });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching alumni graduation year data" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -272,10 +276,10 @@ export const getAlumniByCompany = async (req, res) => {
       value: Number(row.value)
     }));
 
-    res.json({ data });
+    res.json({ success: true, data });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching alumni company data" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -296,10 +300,10 @@ export const getAlumniByDomain = async (req, res) => {
       value: Number(row.value)
     }));
 
-    res.json({ data });
+    res.json({ success: true, data });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching alumni domain data" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -320,10 +324,10 @@ export const getEventRegistrationTrends = async (req, res) => {
       registrations: Number(row.registrations)
     }));
 
-    res.json({ data });
+    res.json({ success: true, data });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching event registration trends" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -343,10 +347,10 @@ export const getUserRoleDistribution = async (req, res) => {
       value: Number(row.count)
     }));
 
-    res.json({ data });
+    res.json({ success: true, data });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching user role distribution" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -360,6 +364,7 @@ export const getEventStats = async (req, res) => {
     ]);
 
     res.json({
+      success: true,
       data: {
         totalEvents: Number(totalEvents.rows[0].count),
         upcomingEvents: Number(upcomingEvents.rows[0].count),
@@ -369,6 +374,6 @@ export const getEventStats = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching event stats" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

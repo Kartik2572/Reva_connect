@@ -6,32 +6,39 @@ export const getPosts = async (req, res) => {
       `SELECT id, author, title, description, category, link_url AS "linkUrl", tags, visibility, created_at AS "createdAt", likes
        FROM posts ORDER BY created_at DESC`
     );
-    res.json({ data: result.rows });
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching posts" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const createPost = async (req, res) => {
   try {
-    const { author, title, description, category, linkUrl = "", tags = [], visibility = "Everyone" } = req.body;
+    const { title, description, category, linkUrl = "", tags = [], visibility = "Everyone" } = req.body;
+    const author = req.user.name || req.body.author;
 
-    if (!author || !title) {
-      return res.status(400).json({ message: "Post author and title are required" });
+    if (!author || !title || !String(title).trim()) {
+      return res.status(400).json({ success: false, message: "Post author and title are required" });
     }
 
     const result = await pool.query(
       `INSERT INTO posts (author, title, description, category, link_url, tags, visibility)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id, author, title, description, category, link_url AS "linkUrl", tags, visibility, created_at AS "createdAt", likes`,
-      [author, title, description, category, linkUrl, tags, visibility]
+      [author, String(title).trim(), description, category, linkUrl, tags, visibility]
     );
 
-    res.status(201).json({ data: result.rows[0] });
+    console.log({
+      user: req.user.id,
+      action: "Created post",
+      post_id: result.rows[0].id
+    });
+
+    res.status(201).json({ success: true, data: result.rows[0] });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error creating post" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -59,7 +66,7 @@ export const updatePost = async (req, res) => {
     });
 
     if (!fields.length) {
-      return res.status(400).json({ message: "No fields provided for update" });
+      return res.status(400).json({ success: false, message: "No fields provided for update" });
     }
 
     values.push(id);
@@ -67,13 +74,13 @@ export const updatePost = async (req, res) => {
     const result = await pool.query(query, values);
 
     if (!result.rows.length) {
-      return res.status(404).json({ message: "Post not found" });
+      return res.status(404).json({ success: false, message: "Post not found" });
     }
 
-    res.json({ data: result.rows[0] });
+    res.json({ success: true, data: result.rows[0] });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error updating post" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -85,10 +92,10 @@ export const getPostsByAuthor = async (req, res) => {
        FROM posts WHERE author = $1 ORDER BY created_at DESC LIMIT 3`,
       [author]
     );
-    res.json({ data: result.rows });
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching posts by author" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -101,12 +108,12 @@ export const deletePost = async (req, res) => {
     );
 
     if (!result.rows.length) {
-      return res.status(404).json({ message: "Post not found" });
+      return res.status(404).json({ success: false, message: "Post not found" });
     }
 
     res.json({ success: true, message: "Post deleted successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error deleting post" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

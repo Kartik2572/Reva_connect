@@ -17,10 +17,10 @@ export const getEvents = async (req, res) => {
        GROUP BY e.id
        ORDER BY e.date DESC`
     );
-    res.json({ data: result.rows.map(formatEvent) });
+    res.json({ success: true, data: result.rows.map(formatEvent) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching events" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -32,10 +32,10 @@ export const getEventsByHost = async (req, res) => {
        FROM events WHERE host = $1 ORDER BY date DESC`,
       [host]
     );
-    res.json({ data: result.rows.map(formatEvent) });
+    res.json({ success: true, data: result.rows.map(formatEvent) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching events by host" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -54,10 +54,10 @@ export const getOtherAlumniHostedEvents = async (req, res) => {
        ORDER BY e.date DESC`,
       [host]
     );
-    res.json({ data: result.rows.map(formatEvent) });
+    res.json({ success: true, data: result.rows.map(formatEvent) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching other alumni events" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -73,20 +73,20 @@ export const getUpcomingAlumniEvents = async (req, res) => {
        GROUP BY e.id
        ORDER BY e.date ASC`
     );
-    res.json({ data: result.rows.map(formatEvent) });
+    res.json({ success: true, data: result.rows.map(formatEvent) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching upcoming alumni events" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const registerForEvent = async (req, res) => {
   try {
-    const user_id = req.user?.id;
+    const user_id = req.user.id;
     const { event_id } = req.body;
 
     if (!user_id || !event_id) {
-      return res.status(400).json({ message: "Event ID is required" });
+      return res.status(400).json({ success: false, message: "Event ID is required" });
     }
 
     // Validate user exists
@@ -96,7 +96,7 @@ export const registerForEvent = async (req, res) => {
     );
 
     if (userExists.rows.length === 0) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ success: false, message: "User not found" });
     }
 
     // Validate event exists
@@ -106,7 +106,7 @@ export const registerForEvent = async (req, res) => {
     );
 
     if (eventExists.rows.length === 0) {
-      return res.status(400).json({ message: "Event not found" });
+      return res.status(400).json({ success: false, message: "Event not found" });
     }
 
     // Check if already registered
@@ -116,7 +116,7 @@ export const registerForEvent = async (req, res) => {
     );
 
     if (existing.rows.length > 0) {
-      return res.status(400).json({ message: "Already registered for this event" });
+      return res.status(400).json({ success: false, message: "Already registered for this event" });
     }
 
     // Insert registration
@@ -131,10 +131,16 @@ export const registerForEvent = async (req, res) => {
       [event_id]
     );
 
-    res.json({ message: "Registered successfully" });
+    console.log({
+      user: req.user.id,
+      action: "Registered for event",
+      event_id
+    });
+
+    res.json({ success: true, message: "Registered successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error registering for event" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -143,7 +149,7 @@ export const getUserRegistrations = async (req, res) => {
     const user_id = req.user?.id;
 
     if (!user_id) {
-      return res.status(400).json({ message: "Invalid authenticated user" });
+      return res.status(400).json({ success: false, message: "Invalid authenticated user" });
     }
 
     const result = await pool.query(
@@ -151,10 +157,10 @@ export const getUserRegistrations = async (req, res) => {
       [user_id]
     );
 
-    res.json({ data: result.rows.map(row => row.event_id) });
+    res.json({ success: true, data: result.rows.map(row => row.event_id) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching user registrations" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -168,10 +174,10 @@ export const getEventRegistrations = async (req, res) => {
        WHERE er.event_id = $1`,
       [id]
     );
-    res.json({ data: result.rows });
+    res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching event registrations" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -180,21 +186,27 @@ export const createEvent = async (req, res) => {
     const { title, description, host, date, time, mode = "Online" } = req.body;
     const attachmentUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
-    if (!title || !date) {
-      return res.status(400).json({ message: "Event title and date are required" });
+    if (!title || !String(title).trim() || !date) {
+      return res.status(400).json({ success: false, message: "Event title and date are required" });
     }
 
     const result = await pool.query(
       `INSERT INTO events (title, description, host, date, time, mode, registered_students, attachment_url)
        VALUES ($1, $2, $3, $4, $5, $6, 0, $7)
        RETURNING id, title, description, host, date, time, mode, registered_students AS "registeredStudents", attachment_url AS "attachmentUrl"`,
-      [title, description, host, date, time, mode, attachmentUrl]
+      [String(title).trim(), description, host, date, time, mode, attachmentUrl]
     );
 
-    res.status(201).json({ data: formatEvent(result.rows[0]) });
+    console.log({
+      user: req.user.id,
+      action: "Created event",
+      event_id: result.rows[0].id
+    });
+
+    res.status(201).json({ success: true, data: formatEvent(result.rows[0]) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error creating event" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -221,7 +233,7 @@ export const updateEvent = async (req, res) => {
     });
 
     if (!fields.length) {
-      return res.status(400).json({ message: "No fields provided for update" });
+      return res.status(400).json({ success: false, message: "No fields provided for update" });
     }
 
     values.push(id);
@@ -229,34 +241,35 @@ export const updateEvent = async (req, res) => {
     const result = await pool.query(query, values);
 
     if (!result.rows.length) {
-      return res.status(404).json({ message: "Event not found" });
+      return res.status(404).json({ success: false, message: "Event not found" });
     }
 
-    res.json({ data: formatEvent(result.rows[0]) });
+    res.json({ success: true, data: formatEvent(result.rows[0]) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error updating event" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const deleteEvent = async (req, res) => {
   try {
     const { id } = req.params;
-    const { adminName } = req.body || {};
+    // Prefer adminName from user role if available, or fallback to body (or just req.user.name)
+    const adminName = req.user.name || req.body?.adminName;
     const result = await pool.query("DELETE FROM events WHERE id = $1 RETURNING id, title", [id]);
 
     if (!result.rows.length) {
-      return res.status(404).json({ message: "Event not found" });
+      return res.status(404).json({ success: false, message: "Event not found" });
     }
 
-    if (adminName) {
+    if (adminName && req.user.role === 'admin') {
       const title = result.rows[0].title || "event";
       await logAdminActivity(adminName, `Admin ${adminName} deleted event "${title}"`);
     }
 
-    res.status(204).send();
+    res.status(200).json({ success: true, message: "Event deleted" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error deleting event" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
