@@ -1,4 +1,5 @@
 import { pool } from "../config/db.js";
+import { logger } from "../utils/logger.js";
 
 const ALLOWED_STATUS = new Set(["Pending", "Accepted", "Rejected"]);
 
@@ -44,7 +45,7 @@ export const createMentorshipRequest = async (req, res) => {
       [sid, mentorId, "Pending"]
     );
 
-    console.log({
+    logger.info({
       user: req.user.id,
       action: "Created mentorship request",
       mentor_id: mentorId
@@ -52,7 +53,7 @@ export const createMentorshipRequest = async (req, res) => {
 
     res.status(201).json({ success: true, data: result.rows[0] });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in mentorshipController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -70,7 +71,7 @@ export const getMentorshipRequests = async (req, res) => {
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in mentorshipController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -96,7 +97,7 @@ export const getMentorshipRequestsForStudent = async (req, res) => {
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in mentorshipController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -115,7 +116,7 @@ export const getMentorshipRequestsForAlumnus = async (req, res) => {
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in mentorshipController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -151,7 +152,7 @@ export const updateMentorshipRequest = async (req, res) => {
 
     res.json({ success: true, data: result.rows[0] });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in mentorshipController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -167,7 +168,7 @@ export const deleteMentorshipRequest = async (req, res) => {
 
     res.status(200).json({ success: true, message: "Mentorship request deleted" });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in mentorshipController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

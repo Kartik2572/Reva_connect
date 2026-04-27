@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { pool } from "../config/db.js";
 import { generateToken } from "../utils/generateToken.js";
+import { logger } from "../utils/logger.js";
 
 const SALT_ROUNDS = 10;
 
@@ -89,10 +90,10 @@ export const registerUser = async (req, res) => {
     if (role === "alumni") {
       const companyTrimmed = String(company).trim();
       const alumniInsert = await pool.query(
-        `INSERT INTO alumni (name, role, company, branch_or_company, graduation_year, experience, domain, location, status, verification_status)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Pending', 'Pending')
+        `INSERT INTO alumni (user_id, name, role, company, branch_or_company, graduation_year, experience, domain, location, status, verification_status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Pending', 'Pending')
          RETURNING id`,
-        [name, role, companyTrimmed, branch || null, graduationYear || null, experience || null, domain || null, location || null]
+        [result.rows[0].id, name, role, companyTrimmed, branch || null, graduationYear || null, experience || null, domain || null, location || null]
       );
       alumniId = alumniInsert.rows[0]?.id || null;
     }
@@ -106,7 +107,7 @@ export const registerUser = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Register error:", error.message);
+    logger.error({ error: error.message, stack: error.stack }, "Register error");
     
     // Handle specific database errors
     if (error.code === "42P01") {
@@ -172,8 +173,8 @@ export const loginUser = async (req, res) => {
     let alumniId = null;
     if (user.role && String(user.role).toLowerCase() === "alumni") {
       const al = await pool.query(
-        `SELECT id FROM alumni WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) LIMIT 1`,
-        [user.name]
+        `SELECT id FROM alumni WHERE user_id = $1 LIMIT 1`,
+        [user.id]
       );
       alumniId = al.rows[0]?.id || null;
     }
@@ -193,7 +194,7 @@ export const loginUser = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Login error:", error.message);
+    logger.error({ error: error.message, stack: error.stack }, "Login error");
     
     if (error.code === "42P01" || error.message.includes("does not exist")) {
       return res.status(500).json({
@@ -256,9 +257,9 @@ export const updateUserProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json({ data: result.rows[0] });
+    res.json({ success: true, data: result.rows[0] });
   } catch (error) {
-    console.error("Error updating user profile:", error);
-    res.status(500).json({ message: "Error updating profile" });
+    logger.error({ error: error.message, stack: error.stack }, "Error updating user profile");
+    res.status(500).json({ success: false, message: "Error updating profile" });
   }
 };

@@ -1,4 +1,5 @@
 import { pool } from "../config/db.js";
+import { logger } from "../utils/logger.js";
 
 export const getPosts = async (req, res) => {
   try {
@@ -8,7 +9,7 @@ export const getPosts = async (req, res) => {
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in postController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -29,7 +30,7 @@ export const createPost = async (req, res) => {
       [author, String(title).trim(), description, category, linkUrl, tags, visibility]
     );
 
-    console.log({
+    logger.info({
       user: req.user.id,
       action: "Created post",
       post_id: result.rows[0].id
@@ -37,7 +38,7 @@ export const createPost = async (req, res) => {
 
     res.status(201).json({ success: true, data: result.rows[0] });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in postController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -79,7 +80,7 @@ export const updatePost = async (req, res) => {
 
     res.json({ success: true, data: result.rows[0] });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in postController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -94,7 +95,7 @@ export const getPostsByAuthor = async (req, res) => {
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in postController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -113,7 +114,7 @@ export const deletePost = async (req, res) => {
 
     res.json({ success: true, message: "Post deleted successfully" });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in postController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

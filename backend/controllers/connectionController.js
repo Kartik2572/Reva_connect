@@ -1,4 +1,5 @@
 import { pool } from "../config/db.js";
+import { logger } from "../utils/logger.js";
 
 // Get all students (for connection suggestions)
 export const getAllStudents = async (req, res) => {
@@ -27,7 +28,7 @@ export const getAllStudents = async (req, res) => {
       data: result.rows
     });
   } catch (error) {
-    console.error("Get students error:", error);
+    logger.error("Get students error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error"
@@ -61,7 +62,7 @@ export const getConnectionStatus = async (req, res) => {
       data: result.rows[0] || null
     });
   } catch (error) {
-    console.error("Get connection status error:", error);
+    logger.error("Get connection status error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error"
@@ -100,7 +101,7 @@ export const getMyConnections = async (req, res) => {
       data: result.rows
     });
   } catch (error) {
-    console.error("Get my connections error:", error);
+    logger.error("Get my connections error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error"
@@ -164,7 +165,7 @@ export const sendConnectionRequest = async (req, res) => {
       data: result.rows[0]
     });
   } catch (error) {
-    console.error("Send connection request error:", error);
+    logger.error("Send connection request error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error"
@@ -220,7 +221,7 @@ export const acceptConnectionRequest = async (req, res) => {
       data: result.rows[0]
     });
   } catch (error) {
-    console.error("Accept connection request error:", error);
+    logger.error("Accept connection request error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error"
@@ -269,7 +270,7 @@ export const rejectConnectionRequest = async (req, res) => {
       data: result.rows[0]
     });
   } catch (error) {
-    console.error("Reject connection request error:", error);
+    logger.error("Reject connection request error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error"
@@ -303,7 +304,7 @@ export const getPendingRequests = async (req, res) => {
       data: result.rows
     });
   } catch (error) {
-    console.error("Get pending requests error:", error);
+    logger.error("Get pending requests error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error"

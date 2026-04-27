@@ -1,4 +1,5 @@
 import { pool } from "../config/db.js";
+import { logger } from "../utils/logger.js";
 
 const formatAlumniRow = (row) => ({
   ...row,
@@ -22,7 +23,7 @@ export const getAlumni = async (req, res) => {
     const whereParts = [
       `EXISTS (
         SELECT 1 FROM users u
-        WHERE LOWER(TRIM(u.name)) = LOWER(TRIM(a.name))
+        WHERE u.id = a.user_id
         AND LOWER(u.role) = 'alumni'
       )`
     ];
@@ -76,7 +77,7 @@ export const getAlumni = async (req, res) => {
     );
     res.json({ success: true, data: result.rows.map(formatAlumniRow) });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error getting alumni");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -97,7 +98,7 @@ export const getAlumnusById = async (req, res) => {
 
     res.json({ success: true, data: formatAlumniRow(result.rows[0]) });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error getting alumnus by ID");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -130,7 +131,7 @@ export const createAlumnus = async (req, res) => {
 
     res.status(201).json({ success: true, data: formatAlumniRow(result.rows[0]) });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error creating alumnus");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -235,7 +236,7 @@ export const updateAlumnus = async (req, res) => {
     res.json({ success: true, data: formatAlumniRow(finalResult.rows[0]) });
   } catch (error) {
     await client.query("ROLLBACK");
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error updating alumnus");
     res.status(500).json({ success: false, message: "Internal server error" });
   } finally {
     client.release();
@@ -253,7 +254,7 @@ export const deleteAlumnus = async (req, res) => {
 
     res.status(200).json({ success: true, message: "Alumnus deleted" });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error deleting alumnus");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

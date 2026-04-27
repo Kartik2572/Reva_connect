@@ -1,5 +1,6 @@
 import { pool } from "../config/db.js";
 import { logAdminActivity } from "../utils/activityLog.js";
+import { logger } from "../utils/logger.js";
 
 const formatEvent = (row) => ({
   ...row,
@@ -19,7 +20,7 @@ export const getEvents = async (req, res) => {
     );
     res.json({ success: true, data: result.rows.map(formatEvent) });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error getting events");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -34,7 +35,7 @@ export const getEventsByHost = async (req, res) => {
     );
     res.json({ success: true, data: result.rows.map(formatEvent) });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error getting events by host");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -56,7 +57,7 @@ export const getOtherAlumniHostedEvents = async (req, res) => {
     );
     res.json({ success: true, data: result.rows.map(formatEvent) });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error getting other alumni hosted events");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -75,12 +76,13 @@ export const getUpcomingAlumniEvents = async (req, res) => {
     );
     res.json({ success: true, data: result.rows.map(formatEvent) });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error getting upcoming alumni events");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const registerForEvent = async (req, res) => {
+  const client = await pool.connect();
   try {
     const user_id = req.user.id;
     const { event_id } = req.body;
@@ -89,49 +91,56 @@ export const registerForEvent = async (req, res) => {
       return res.status(400).json({ success: false, message: "Event ID is required" });
     }
 
+    await client.query("BEGIN");
+
     // Validate user exists
-    const userExists = await pool.query(
+    const userExists = await client.query(
       "SELECT id FROM users WHERE id = $1",
       [user_id]
     );
 
     if (userExists.rows.length === 0) {
+      await client.query("ROLLBACK");
       return res.status(400).json({ success: false, message: "User not found" });
     }
 
     // Validate event exists
-    const eventExists = await pool.query(
+    const eventExists = await client.query(
       "SELECT id FROM events WHERE id = $1",
       [event_id]
     );
 
     if (eventExists.rows.length === 0) {
+      await client.query("ROLLBACK");
       return res.status(400).json({ success: false, message: "Event not found" });
     }
 
     // Check if already registered
-    const existing = await pool.query(
+    const existing = await client.query(
       "SELECT id FROM event_registrations WHERE user_id = $1 AND event_id = $2",
       [user_id, event_id]
     );
 
     if (existing.rows.length > 0) {
+      await client.query("ROLLBACK");
       return res.status(400).json({ success: false, message: "Already registered for this event" });
     }
 
     // Insert registration
-    await pool.query(
+    await client.query(
       "INSERT INTO event_registrations (user_id, event_id) VALUES ($1, $2)",
       [user_id, event_id]
     );
 
     // Update registered_students count
-    await pool.query(
+    await client.query(
       "UPDATE events SET registered_students = registered_students + 1 WHERE id = $1",
       [event_id]
     );
 
-    console.log({
+    await client.query("COMMIT");
+
+    logger.info({
       user: req.user.id,
       action: "Registered for event",
       event_id
@@ -139,8 +148,11 @@ export const registerForEvent = async (req, res) => {
 
     res.json({ success: true, message: "Registered successfully" });
   } catch (error) {
-    console.error(error);
+    await client.query("ROLLBACK");
+    logger.error({ error: error.message, stack: error.stack }, "Error registering for event");
     res.status(500).json({ success: false, message: "Internal server error" });
+  } finally {
+    client.release();
   }
 };
 
@@ -159,7 +171,7 @@ export const getUserRegistrations = async (req, res) => {
 
     res.json({ success: true, data: result.rows.map(row => row.event_id) });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error getting user registrations");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -176,7 +188,7 @@ export const getEventRegistrations = async (req, res) => {
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error getting event registrations");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -197,7 +209,7 @@ export const createEvent = async (req, res) => {
       [String(title).trim(), description, host, date, time, mode, attachmentUrl]
     );
 
-    console.log({
+    logger.info({
       user: req.user.id,
       action: "Created event",
       event_id: result.rows[0].id
@@ -205,7 +217,7 @@ export const createEvent = async (req, res) => {
 
     res.status(201).json({ success: true, data: formatEvent(result.rows[0]) });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error creating event");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -246,7 +258,7 @@ export const updateEvent = async (req, res) => {
 
     res.json({ success: true, data: formatEvent(result.rows[0]) });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error updating event");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -269,7 +281,7 @@ export const deleteEvent = async (req, res) => {
 
     res.status(200).json({ success: true, message: "Event deleted" });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error deleting event");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

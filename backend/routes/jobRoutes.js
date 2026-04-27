@@ -13,6 +13,7 @@ import {
 } from "../controllers/jobController.js";
 
 import { verifyToken, isAlumni, isAdmin } from "../middleware/authMiddleware.js";
+import { validateJob } from "../middleware/validationMiddleware.js";
 
 const router = express.Router();
 
@@ -28,7 +29,7 @@ router.put("/admin/:id", isAdmin, updateJobReferralStatus);        // PUT /api/j
 
 // Generic routes for job referrals
 router.get("/", getJobReferrals);                         // GET /api/jobs or /api/jobs?studentId=1
-router.post("/", isAlumni, createJobReferral);                      // POST /api/jobs (create job referral)
+router.post("/", isAlumni, validateJob, createJobReferral);                      // POST /api/jobs (create job referral)
 
 // Legacy job endpoints (basic jobs table - not for job referrals)
 router.get("/legacy/all", getJobs);

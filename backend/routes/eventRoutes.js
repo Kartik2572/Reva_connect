@@ -15,6 +15,7 @@ import {
   deleteEvent
 } from "../controllers/eventController.js";
 import { verifyToken, isAlumni } from "../middleware/authMiddleware.js";
+import { validateEvent } from "../middleware/validationMiddleware.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -51,7 +52,7 @@ router.get("/upcoming-alumni", getUpcomingAlumniEvents);
 router.get("/other-alumni/:host", getOtherAlumniHostedEvents);
 router.post("/register", registerForEvent);
 router.get("/user/registrations", getUserRegistrations);
-router.post("/", isAlumni, upload.single("attachment"), createEvent);
+router.post("/", isAlumni, upload.single("attachment"), validateEvent, createEvent);
 router.get("/:id/registrations", getEventRegistrations);
 router.put("/:id", isAlumni, updateEvent);
 router.delete("/:id", isAlumni, deleteEvent);

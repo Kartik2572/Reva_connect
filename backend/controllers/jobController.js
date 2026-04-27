@@ -1,4 +1,5 @@
 import { pool } from "../config/db.js";
+import { logger } from "../utils/logger.js";
 
 const formatJobReferral = (row) => ({
   id: row.id,
@@ -29,8 +30,10 @@ const formatJobApplication = (row) => ({
 
 export const getJobReferrals = async (req, res) => {
   try {
-    const rawStudent = req.query.studentId;
-    const studentId = rawStudent !== undefined && rawStudent !== "" ? Number(rawStudent) : null;
+    const rawStudent = req.user.role === 'admin' && req.query.studentId !== undefined 
+      ? req.query.studentId 
+      : req.user.id;
+    const studentId = rawStudent !== undefined && rawStudent !== "" && rawStudent !== null ? Number(rawStudent) : null;
     const withApplied =
       studentId !== null && Number.isInteger(studentId) && studentId > 0
         ? `EXISTS (
@@ -52,7 +55,7 @@ export const getJobReferrals = async (req, res) => {
     );
     res.json({ success: true, data: result.rows.map(formatJobReferral) });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error getting job referrals");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -88,12 +91,13 @@ export const getJobApplicationsForStudent = async (req, res) => {
     );
     res.json({ success: true, data: result.rows.map(formatJobApplication) });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error getting job applications for student");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 export const createJobApplication = async (req, res) => {
+  const client = await pool.connect();
   try {
     const { job_referral_id } = req.body;
     const student_id = req.user.id;
@@ -107,20 +111,24 @@ export const createJobApplication = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid student_id" });
     }
 
-    const userCheck = await pool.query(
+    await client.query("BEGIN");
+
+    const userCheck = await client.query(
       `SELECT id FROM users WHERE id = $1 AND LOWER(role) = 'student'`,
       [sid]
     );
     if (!userCheck.rows.length) {
+      await client.query("ROLLBACK");
       return res.status(400).json({ success: false, message: "Student not found" });
     }
 
-    const refCheck = await pool.query(`SELECT id FROM job_referrals WHERE id = $1`, [job_referral_id]);
+    const refCheck = await client.query(`SELECT id FROM job_referrals WHERE id = $1`, [job_referral_id]);
     if (!refCheck.rows.length) {
+      await client.query("ROLLBACK");
       return res.status(404).json({ success: false, message: "Job referral not found" });
     }
 
-    const result = await pool.query(
+    const result = await client.query(
       `INSERT INTO job_applications (student_id, job_referral_id, status)
        VALUES ($1, $2, 'Applied')
        ON CONFLICT (student_id, job_referral_id)
@@ -130,7 +138,7 @@ export const createJobApplication = async (req, res) => {
     );
 
     const row = result.rows[0];
-    const detail = await pool.query(
+    const detail = await client.query(
       `SELECT ja.id, ja.student_id, ja.job_referral_id, ja.status, ja.applied_at,
               j.job_title, j.company, j.description, j.location, j.job_link,
               a.name AS alumni_name
@@ -141,7 +149,9 @@ export const createJobApplication = async (req, res) => {
       [row.id]
     );
 
-    console.log({
+    await client.query("COMMIT");
+
+    logger.info({
       user: req.user.id,
       action: "Applied for job",
       job_referral_id
@@ -149,8 +159,11 @@ export const createJobApplication = async (req, res) => {
 
     res.status(201).json({ success: true, data: formatJobApplication(detail.rows[0]) });
   } catch (error) {
-    console.error(error);
+    await client.query("ROLLBACK");
+    logger.error({ error: error.message, stack: error.stack }, "Error creating job application");
     res.status(500).json({ success: false, message: "Internal server error" });
+  } finally {
+    client.release();
   }
 };
 
@@ -189,7 +202,7 @@ export const createJobReferral = async (req, res) => {
     const row = result.rows[0];
     row.alumni_name = alumniName;
 
-    console.log({
+    logger.info({
       user: req.user.id,
       action: "Created job referral",
       job_referral_id: row.id
@@ -197,7 +210,7 @@ export const createJobReferral = async (req, res) => {
 
     res.status(201).json({ success: true, data: formatJobReferral(row) });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error creating job referral");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -226,7 +239,7 @@ export const getAdminJobReferrals = async (req, res) => {
       createdAt: row.created_at
     })) });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error getting admin job referrals");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -283,7 +296,7 @@ export const updateJobReferralStatus = async (req, res) => {
       createdAt: row.created_at
     } });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error updating job referral status");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -296,7 +309,7 @@ export const getJobs = async (req, res) => {
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error getting jobs");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -318,7 +331,7 @@ export const createJob = async (req, res) => {
 
     res.status(201).json({ success: true, data: result.rows[0] });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error creating job");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -355,7 +368,7 @@ export const updateJob = async (req, res) => {
 
     res.json({ success: true, data: result.rows[0] });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error updating job");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -371,7 +384,7 @@ export const deleteJob = async (req, res) => {
 
     res.status(200).json({ success: true, message: "Job deleted" });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error deleting job");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

@@ -1,4 +1,5 @@
 import { pool } from "../config/db.js";
+import { logger } from "../utils/logger.js";
 import { logAdminActivity } from "../utils/activityLog.js";
 
 export const getAdminStats = async (req, res) => {
@@ -33,7 +34,7 @@ export const getAdminStats = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -46,7 +47,7 @@ export const getAdminUsers = async (req, res) => {
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     if (error.code === "28P01") {
       return res.status(500).json({
         success: false,
@@ -81,7 +82,7 @@ export const deleteAdminUser = async (req, res) => {
     await logAdminActivity(adminName, `Admin ${adminName} deleted user ${deletedUser.name} (${deletedUser.role})`);
     res.json({ success: true, data: deletedUser });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -94,7 +95,7 @@ export const getPendingAlumni = async (req, res) => {
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -119,7 +120,7 @@ export const updatePendingAlumniStatus = async (req, res) => {
     await logAdminActivity(adminName, `Admin ${adminName} ${action === "reject" ? "rejected" : "approved"} alumni ${result.rows[0].name}`);
     res.json({ success: true, data: result.rows[0] });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -132,7 +133,7 @@ export const getAdminPosts = async (req, res) => {
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -144,7 +145,7 @@ export const getAdminEvents = async (req, res) => {
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -166,7 +167,7 @@ export const getAdminActivityLogs = async (req, res) => {
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -183,7 +184,7 @@ export const createAdminActivityLog = async (req, res) => {
     await logAdminActivity(adminName, action);
     res.status(201).json({ success: true });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -205,7 +206,7 @@ export const deleteAdminPost = async (req, res) => {
     );
     res.json({ success: true });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -230,7 +231,7 @@ export const getUserRegistrationTrends = async (req, res) => {
 
     res.json({ success: true, data });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -254,7 +255,7 @@ export const getAlumniByGraduationYear = async (req, res) => {
 
     res.json({ success: true, data });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -278,7 +279,7 @@ export const getAlumniByCompany = async (req, res) => {
 
     res.json({ success: true, data });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -302,7 +303,7 @@ export const getAlumniByDomain = async (req, res) => {
 
     res.json({ success: true, data });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -326,7 +327,7 @@ export const getEventRegistrationTrends = async (req, res) => {
 
     res.json({ success: true, data });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -349,7 +350,7 @@ export const getUserRoleDistribution = async (req, res) => {
 
     res.json({ success: true, data });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -373,7 +374,7 @@ export const getEventStats = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error(error);
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
