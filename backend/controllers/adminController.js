@@ -62,22 +62,33 @@ export const deleteAdminUser = async (req, res) => {
   try {
     const { id } = req.params;
     const adminName = req.user.name || "Admin";
+
+    // First fetch the user to get their details
+    const userResult = await pool.query(
+      "SELECT id, name, email, role FROM users WHERE id = $1",
+      [id]
+    );
+
+    if (!userResult.rows.length) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const userToDelete = userResult.rows[0];
+
+    // Delete dependent alumni record first to avoid foreign key violations
+    if (userToDelete.role === "alumni") {
+      await pool.query(
+        "DELETE FROM alumni WHERE user_id = $1",
+        [id]
+      );
+    }
+
+    // Now safely delete the user
     const result = await pool.query(
       "DELETE FROM users WHERE id = $1 RETURNING id, name, email, role",
       [id]
     );
-
-    if (!result.rows.length) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
-
     const deletedUser = result.rows[0];
-    if (deletedUser.role === "alumni") {
-      await pool.query(
-        "DELETE FROM alumni WHERE name = $1 AND role = 'alumni'",
-        [deletedUser.name]
-      );
-    }
 
     await logAdminActivity(adminName, `Admin ${adminName} deleted user ${deletedUser.name} (${deletedUser.role})`);
     res.json({ success: true, data: deletedUser });
