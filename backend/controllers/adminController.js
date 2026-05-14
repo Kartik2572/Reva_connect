@@ -111,24 +111,43 @@ export const getPendingAlumni = async (req, res) => {
   }
 };
 
-export const updatePendingAlumniStatus = async (req, res) => {
+export const approveAlumni = async (req, res) => {
   try {
     const { id } = req.params;
-    const { action = "approve" } = req.body;
     const adminName = req.user.name || "Admin";
-    const status = action === "reject" ? "Rejected" : "Approved";
-    const verificationStatus = status;
 
     const result = await pool.query(
-      `UPDATE alumni SET status = $1, verification_status = $2 WHERE id = $3 RETURNING id, name, role, company, branch_or_company AS "branchOrCompany", graduation_year AS "graduationYear", experience, domain, location, status, verification_status AS "verificationStatus"`,
-      [status, verificationStatus, id]
+      `UPDATE alumni SET status = 'Approved', verification_status = 'Approved' WHERE id = $1 RETURNING id, name, role, company, branch_or_company AS "branchOrCompany", graduation_year AS "graduationYear", experience, domain, location, status, verification_status AS "verificationStatus"`,
+      [id]
     );
 
     if (!result.rows.length) {
       return res.status(404).json({ success: false, message: "Pending alumni not found" });
     }
 
-    await logAdminActivity(adminName, `Admin ${adminName} ${action === "reject" ? "rejected" : "approved"} alumni ${result.rows[0].name}`);
+    await logAdminActivity(adminName, `Admin ${adminName} approved alumni ${result.rows[0].name}`);
+    res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const rejectAlumni = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminName = req.user.name || "Admin";
+
+    const result = await pool.query(
+      `UPDATE alumni SET status = 'Rejected', verification_status = 'Rejected' WHERE id = $1 RETURNING id, name, role, company, branch_or_company AS "branchOrCompany", graduation_year AS "graduationYear", experience, domain, location, status, verification_status AS "verificationStatus"`,
+      [id]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ success: false, message: "Pending alumni not found" });
+    }
+
+    await logAdminActivity(adminName, `Admin ${adminName} rejected alumni ${result.rows[0].name}`);
     res.json({ success: true, data: result.rows[0] });
   } catch (error) {
     logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");

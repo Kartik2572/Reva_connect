@@ -170,19 +170,19 @@ export const createJobApplication = async (req, res) => {
 export const createJobReferral = async (req, res) => {
   try {
     const { job_title, company, description, location, job_link } = req.body;
-    const alumni_id = req.user.id;
+    const user_id = req.user.id;
 
     if (!job_title || !String(job_title).trim()) {
       return res.status(400).json({ success: false, message: "job_title is required" });
     }
 
-    const exists = await pool.query(`SELECT id FROM alumni WHERE id = $1`, [alumni_id]);
+    const exists = await pool.query(`SELECT id, name FROM alumni WHERE user_id = $1`, [user_id]);
     if (!exists.rows.length) {
       return res.status(400).json({ success: false, message: "Invalid alumni_id" });
     }
 
-    const nameRes = await pool.query(`SELECT name FROM alumni WHERE id = $1`, [alumni_id]);
-    const alumniName = nameRes.rows[0]?.name || null;
+    const alumni_id = exists.rows[0].id;
+    const alumniName = exists.rows[0].name || null;
 
     const result = await pool.query(
       `INSERT INTO job_referrals (alumni_id, job_title, company, description, location, job_link, posted_by)

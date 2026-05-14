@@ -168,16 +168,32 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    const token = generateToken(user);
-
     let alumniId = null;
     if (user.role && String(user.role).toLowerCase() === "alumni") {
       const al = await pool.query(
-        `SELECT id FROM alumni WHERE user_id = $1 LIMIT 1`,
+        `SELECT id, verification_status FROM alumni WHERE user_id = $1 LIMIT 1`,
         [user.id]
       );
-      alumniId = al.rows[0]?.id || null;
+      
+      const alumniData = al.rows[0];
+      if (alumniData) {
+        if (alumniData.verification_status === "Pending") {
+          return res.status(403).json({
+            success: false,
+            message: "Your alumni account is pending admin verification"
+          });
+        }
+        if (alumniData.verification_status === "Rejected") {
+          return res.status(403).json({
+            success: false,
+            message: "Your alumni account has been rejected"
+          });
+        }
+        alumniId = alumniData.id;
+      }
     }
+
+    const token = generateToken(user);
 
     // Return user without password and include JWT
     res.json({

@@ -4,7 +4,8 @@ import {
   getAdminUsers,
   deleteAdminUser,
   getPendingAlumni,
-  updatePendingAlumniStatus,
+  approveAlumni,
+  rejectAlumni,
   getAdminPosts,
   getAdminEvents,
   getAdminActivityLogs,
@@ -29,7 +30,8 @@ router.get("/stats", getAdminStats);
 router.get("/users", getAdminUsers);
 router.delete("/users/:id", deleteAdminUser);
 router.get("/pending-alumni", getPendingAlumni);
-router.put("/pending-alumni/:id", updatePendingAlumniStatus);
+router.put("/alumni/:id/approve", approveAlumni);
+router.put("/alumni/:id/reject", rejectAlumni);
 router.get("/posts", getAdminPosts);
 router.get("/events", getAdminEvents);
 router.get("/activity-logs", getAdminActivityLogs);
