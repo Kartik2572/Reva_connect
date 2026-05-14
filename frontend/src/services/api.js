@@ -123,7 +123,13 @@ export const fetchAdminStats = () => api.get("/admin/stats");
 export const fetchAdminUsers = () => api.get("/admin/users");
 export const deleteAdminUser = (id, payload) => api.delete(`/admin/users/${id}`, { data: payload });
 export const fetchAdminPendingAlumni = () => api.get("/admin/pending-alumni");
-export const updateAdminPendingAlumniStatus = (id, action = "approve", adminName) => api.put(`/admin/pending-alumni/${id}`, { action, adminName });
+export const updateAdminPendingAlumniStatus = (id, action = "approve", adminName) => {
+  if (action === "approve") {
+    return api.put(`/admin/alumni/${id}/approve`, { adminName });
+  } else {
+    return api.put(`/admin/alumni/${id}/reject`, { adminName });
+  }
+};
 export const fetchAdminPosts = () => api.get("/admin/posts");
 export const fetchAdminEvents = () => api.get("/admin/events");
 export const fetchAdminActivityLogs = (params) => api.get("/admin/activity-logs", { params });
