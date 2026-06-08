@@ -3,9 +3,12 @@ import { logger } from "../utils/logger.js";
 
 export const getPosts = async (req, res) => {
   try {
+    const userId = req.user?.id;
     const result = await pool.query(
-      `SELECT id, author, title, description, category, link_url AS "linkUrl", tags, visibility, created_at AS "createdAt", likes
-       FROM posts ORDER BY created_at DESC`
+      `SELECT p.id, p.author, p.title, p.description, p.category, p.link_url AS "linkUrl", p.tags, p.visibility, p.created_at AS "createdAt", p.likes,
+       EXISTS(SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.user_id = $1) AS "isLikedByMe"
+       FROM posts p ORDER BY p.created_at DESC`,
+      [userId]
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
@@ -88,10 +91,12 @@ export const updatePost = async (req, res) => {
 export const getPostsByAuthor = async (req, res) => {
   try {
     const { author } = req.params;
+    const userId = req.user?.id;
     const result = await pool.query(
-      `SELECT id, author, title, description, category, link_url AS "linkUrl", tags, visibility, created_at AS "createdAt", likes
-       FROM posts WHERE author = $1 ORDER BY created_at DESC LIMIT 3`,
-      [author]
+      `SELECT p.id, p.author, p.title, p.description, p.category, p.link_url AS "linkUrl", p.tags, p.visibility, p.created_at AS "createdAt", p.likes,
+       EXISTS(SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.user_id = $1) AS "isLikedByMe"
+       FROM posts p WHERE p.author = $2 ORDER BY p.created_at DESC LIMIT 3`,
+      [userId, author]
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
@@ -116,5 +121,45 @@ export const deletePost = async (req, res) => {
   } catch (error) {
     logger.error({ error: error.message, stack: error.stack }, "Error in postController.js");
     res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const toggleLikePost = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    await client.query('BEGIN');
+
+    // Check if like exists
+    const likeCheck = await client.query(
+      "SELECT id FROM post_likes WHERE post_id = $1 AND user_id = $2",
+      [id, userId]
+    );
+
+    if (likeCheck.rows.length > 0) {
+      // User already liked it, so unlike
+      await client.query("DELETE FROM post_likes WHERE post_id = $1 AND user_id = $2", [id, userId]);
+      await client.query("UPDATE posts SET likes = GREATEST(likes - 1, 0) WHERE id = $1", [id]);
+      
+      await client.query('COMMIT');
+      return res.json({ success: true, message: "Post unliked successfully", isLikedByMe: false });
+    } else {
+      // User hasn't liked it, so like
+      await client.query("INSERT INTO post_likes (post_id, user_id) VALUES ($1, $2)", [id, userId]);
+      await client.query("UPDATE posts SET likes = COALESCE(likes, 0) + 1 WHERE id = $1", [id]);
+      
+      logger.info({ user: userId, action: "Liked post", post_id: id });
+      
+      await client.query('COMMIT');
+      return res.json({ success: true, message: "Post liked successfully", isLikedByMe: true });
+    }
+  } catch (error) {
+    await client.query('ROLLBACK');
+    logger.error({ error: error.message, stack: error.stack }, "Error in toggleLikePost");
+    res.status(500).json({ success: false, message: "Internal server error" });
+  } finally {
+    client.release();
   }
 };
