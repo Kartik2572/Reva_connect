@@ -94,6 +94,7 @@ CREATE TABLE IF NOT EXISTS posts (
   link_url TEXT,
   tags TEXT[] DEFAULT ARRAY[]::TEXT[],
   visibility TEXT DEFAULT 'Everyone',
+  image_data TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   likes INTEGER DEFAULT 0
 );

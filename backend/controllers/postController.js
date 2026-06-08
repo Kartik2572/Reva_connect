@@ -5,7 +5,7 @@ export const getPosts = async (req, res) => {
   try {
     const userId = req.user?.id;
     const result = await pool.query(
-      `SELECT p.id, p.author, p.title, p.description, p.category, p.link_url AS "linkUrl", p.tags, p.visibility, p.created_at AS "createdAt", p.likes,
+      `SELECT p.id, p.author, p.title, p.description, p.category, p.link_url AS "linkUrl", p.image_data AS "imageData", p.tags, p.visibility, p.created_at AS "createdAt", p.likes,
        EXISTS(SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.user_id = $1) AS "isLikedByMe"
        FROM posts p ORDER BY p.created_at DESC`,
       [userId]
@@ -19,7 +19,7 @@ export const getPosts = async (req, res) => {
 
 export const createPost = async (req, res) => {
   try {
-    const { title, description, category, linkUrl = "", tags = [], visibility = "Everyone" } = req.body;
+    const { title, description, category, linkUrl = "", image = null, tags = [], visibility = "Everyone" } = req.body;
     const author = req.user.name || req.body.author;
 
     if (!author || !title || !String(title).trim()) {
@@ -27,10 +27,10 @@ export const createPost = async (req, res) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO posts (author, title, description, category, link_url, tags, visibility)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING id, author, title, description, category, link_url AS "linkUrl", tags, visibility, created_at AS "createdAt", likes`,
-      [author, String(title).trim(), description, category, linkUrl, tags, visibility]
+      `INSERT INTO posts (author, title, description, category, link_url, image_data, tags, visibility)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id, author, title, description, category, link_url AS "linkUrl", image_data AS "imageData", tags, visibility, created_at AS "createdAt", likes`,
+      [author, String(title).trim(), description, category, linkUrl, image, tags, visibility]
     );
 
     logger.info({
@@ -55,6 +55,7 @@ export const updatePost = async (req, res) => {
       ["description", "description"],
       ["category", "category"],
       ["linkUrl", "link_url"],
+      ["imageData", "image_data"],
       ["tags", "tags"],
       ["visibility", "visibility"],
       ["likes", "likes"]
@@ -74,7 +75,7 @@ export const updatePost = async (req, res) => {
     }
 
     values.push(id);
-    const query = `UPDATE posts SET ${fields.join(", ")} WHERE id = $${values.length} RETURNING id, author, title, description, category, link_url AS "linkUrl", tags, visibility, created_at AS "createdAt", likes`;
+    const query = `UPDATE posts SET ${fields.join(", ")} WHERE id = $${values.length} RETURNING id, author, title, description, category, link_url AS "linkUrl", image_data AS "imageData", tags, visibility, created_at AS "createdAt", likes`;
     const result = await pool.query(query, values);
 
     if (!result.rows.length) {
@@ -93,7 +94,7 @@ export const getPostsByAuthor = async (req, res) => {
     const { author } = req.params;
     const userId = req.user?.id;
     const result = await pool.query(
-      `SELECT p.id, p.author, p.title, p.description, p.category, p.link_url AS "linkUrl", p.tags, p.visibility, p.created_at AS "createdAt", p.likes,
+      `SELECT p.id, p.author, p.title, p.description, p.category, p.link_url AS "linkUrl", p.image_data AS "imageData", p.tags, p.visibility, p.created_at AS "createdAt", p.likes,
        EXISTS(SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.user_id = $1) AS "isLikedByMe"
        FROM posts p WHERE p.author = $2 ORDER BY p.created_at DESC LIMIT 3`,
       [userId, author]
