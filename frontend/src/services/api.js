@@ -104,6 +104,8 @@ export const updatePost = (id, payload) => api.put(`/posts/${id}`, payload);
 
 export const deletePost = (id) => api.delete(`/posts/${id}`);
 
+export const togglePostLike = (id) => api.post(`/posts/${id}/like`);
+
 export const submitMentorshipRequest = (payload) =>
   api.post("/mentorship/request", payload);
 

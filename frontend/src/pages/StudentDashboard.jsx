@@ -41,7 +41,7 @@ const StudentDashboard = () => {
       .then((res) => setEvents((res.data?.data || []).slice(0, 3)))
       .catch(() => {});
     fetchPosts()
-      .then((res) => setPosts((res.data?.data || []).slice(0, 3)))
+      .then((res) => setPosts(res.data?.data || []))
       .catch(() => {});
   }, []);
 
@@ -115,18 +115,20 @@ const StudentDashboard = () => {
               </div>
             </div>
 
-            <div className="card p-6">
-              <div className="card-header">
-                <h3 className="card-title">Networking Posts</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Networking Posts</h3>
               </div>
-              <div className="space-y-5">
+              <div>
                 {posts.map((p) => (
                   <PostCard key={p.id} post={p} />
                 ))}
                 {posts.length === 0 && (
-                  <p className="text-sm text-gray-500 italic">
-                    Networking feed is empty or failed to load.
-                  </p>
+                  <div className="card p-6 text-center">
+                    <p className="text-sm text-gray-500 italic">
+                      Networking feed is empty or failed to load.
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
