@@ -101,6 +101,12 @@ const PostCard = ({ post }) => {
           </div>
         )}
 
+        {post.imageData && (
+          <div className="mt-3 overflow-hidden rounded-md border border-gray-200 dark:border-slate-700">
+            <img src={post.imageData} alt="Post attachment" className="w-full object-cover max-h-96" />
+          </div>
+        )}
+
         {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-3">
             {post.tags.map((tag, idx) => (
