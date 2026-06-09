@@ -13,6 +13,7 @@ import {
   deleteAdminPost,
   deleteEvent
 } from "../services/api.js";
+import PostCard from "../components/PostCard.jsx";
 
 const getAdminName = () => {
   const u = JSON.parse(localStorage.getItem("user") || "{}");
@@ -321,7 +322,7 @@ const AdminDashboard = () => {
           </section>
         </div>
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-2">
+        <div className="mt-8 grid gap-8 lg:grid-cols-1">
           {/* 3. Alumni Verification System */}
           <section className="card p-6">
             <div className="card-header">
@@ -388,53 +389,6 @@ const AdminDashboard = () => {
                   )}
                 </tbody>
               </table>
-            </div>
-          </section>
-
-          {/* 4. Content Moderation */}
-          <section className="card p-6">
-            <div className="card-header">
-              <div className="flex items-center gap-3">
-                <div className="bg-red-50 p-2 rounded-lg text-red-600">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                </div>
-                <h3 className="card-title">Content Moderation</h3>
-              </div>
-            </div>
-            <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-              {moderationPosts.map((post) => (
-                <div
-                  key={post.id}
-                  className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 hover:bg-white hover:shadow-sm transition-all"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-bold text-gray-900 text-sm">
-                      {post.author}
-                    </p>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                      {new Date(post.createdAt).toLocaleDateString("en-IN", {
-                        day: "2-digit",
-                        month: "short"
-                      })}
-                    </p>
-                  </div>
-                  <p className="text-sm font-medium text-gray-600 line-clamp-2 leading-relaxed">{post.description}</p>
-                  <div className="mt-3 flex justify-end">
-                    <button
-                      type="button"
-                      className="font-bold text-red-600 hover:text-red-800 transition-colors uppercase tracking-wider text-[10px]"
-                      onClick={() => handleDeletePost(post)}
-                    >
-                      Delete Post
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {moderationPosts.length === 0 && (
-                <p className="text-sm font-medium text-gray-500 italic text-center py-4">
-                  No posts available for moderation.
-                </p>
-              )}
             </div>
           </section>
         </div>
@@ -552,6 +506,25 @@ const AdminDashboard = () => {
               )}
             </div>
           </section>
+        </div>
+
+        {/* 8. Networking Posts (Content Moderation) */}
+        <div className="mt-8 space-y-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Content Moderation - Networking Posts</h3>
+          </div>
+          <div>
+            {moderationPosts.map((p) => (
+              <PostCard key={p.id} post={p} onDelete={handleDeletePost} />
+            ))}
+            {moderationPosts.length === 0 && (
+              <div className="card p-6 text-center">
+                <p className="text-sm text-gray-500 italic">
+                  Networking feed is empty or failed to load.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

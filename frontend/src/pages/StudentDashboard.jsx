@@ -114,24 +114,6 @@ const StudentDashboard = () => {
                 )}
               </div>
             </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Networking Posts</h3>
-              </div>
-              <div>
-                {posts.map((p) => (
-                  <PostCard key={p.id} post={p} />
-                ))}
-                {posts.length === 0 && (
-                  <div className="card p-6 text-center">
-                    <p className="text-sm text-gray-500 italic">
-                      Networking feed is empty or failed to load.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
           </section>
 
           <section className="space-y-8">
@@ -167,6 +149,24 @@ const StudentDashboard = () => {
               </div>
             </div>
           </section>
+        </div>
+
+        <div className="mt-8 space-y-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Networking Posts</h3>
+          </div>
+          <div>
+            {posts.map((p) => (
+              <PostCard key={p.id} post={p} />
+            ))}
+            {posts.length === 0 && (
+              <div className="card p-6 text-center">
+                <p className="text-sm text-gray-500 italic">
+                  Networking feed is empty or failed to load.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

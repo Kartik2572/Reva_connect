@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { fetchAdminPosts, deleteAdminPost } from "../services/api";
+import PostCard from "../components/PostCard";
 
 const ContentModeration = () => {
   const [posts, setPosts] = useState([]);
@@ -28,15 +29,15 @@ const ContentModeration = () => {
     loadPosts();
   }, []);
 
-  const handleDelete = async (postId) => {
+  const handleDelete = async (post) => {
     if (!window.confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
       return;
     }
 
     try {
-      setBusyId(postId);
-      await deleteAdminPost(postId, { adminName });
-      setPosts(posts.filter(p => p.id !== postId));
+      setBusyId(post.id);
+      await deleteAdminPost(post.id, { adminName });
+      setPosts(posts.filter(p => p.id !== post.id));
     } catch (err) {
       console.error("Error deleting post:", err);
       alert("Failed to delete the post.");
@@ -79,58 +80,17 @@ const ContentModeration = () => {
               No posts have been published yet.
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Author
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Post Details
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Date
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {posts.map((post) => (
-                    <tr key={post.id}>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                        {post.author}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 font-semibold">{post.title}</div>
-                        {post.category && (
-                          <span className="inline-flex rounded-full bg-blue-100 px-2 text-xs font-semibold leading-5 text-blue-800 mt-1">
-                            {post.category}
-                          </span>
-                        )}
-                        <div className="text-sm text-gray-500 mt-1 line-clamp-2" title={post.description}>
-                          {post.description}
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                        {post.createdAt ? new Date(post.createdAt).toLocaleDateString("en-IN") : "—"}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                        <button
-                          type="button"
-                          disabled={busyId === post.id}
-                          onClick={() => handleDelete(post.id)}
-                          className="text-red-600 hover:text-red-900 disabled:opacity-50"
-                        >
-                          {busyId === post.id ? "Deleting..." : "Delete"}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="mt-4 grid gap-4 max-w-3xl mx-auto">
+              {posts.map((post) => (
+                <div key={post.id} className="relative">
+                  {busyId === post.id && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 backdrop-blur-sm rounded-lg">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-red-500 border-t-transparent"></div>
+                    </div>
+                  )}
+                  <PostCard post={post} onDelete={handleDelete} />
+                </div>
+              ))}
             </div>
           )}
         </section>

@@ -174,7 +174,7 @@ const StudentEvents = () => {
             ) : posts.length === 0 ? (
               <p className="mt-2 text-sm text-gray-600">No posts available right now.</p>
             ) : (
-              <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-4 max-w-2xl mx-auto space-y-4">
                 {posts.map(post => (
                   <PostCard key={post.id} post={post} />
                 ))}

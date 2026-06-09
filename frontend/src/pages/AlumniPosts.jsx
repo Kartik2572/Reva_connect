@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { createPost, fetchPostsByAuthor, createEvent } from '../services/api';
+import { createPost, fetchPostsByAuthor, createEvent, deletePost } from '../services/api';
+import PostCard from '../components/PostCard';
 
 const AlumniPosts = () => {
   const [formData, setFormData] = useState({
@@ -113,11 +114,22 @@ const AlumniPosts = () => {
     }
   };
 
+  const handleDeletePost = async (post) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    try {
+      await deletePost(post.id);
+      setRecentPosts(prev => prev.filter(p => p.id !== post.id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete post");
+    }
+  };
+
   const categories = ['Career Advice', 'Job Referral', 'Internship Opportunity', 'Tech Insight', 'Event Announcement'];
 
   return (
     <div className="flex-1 bg-gray-50">
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-full px-4 py-6 sm:px-6 lg:px-8">
         <header className="mb-6">
           <h2 className="text-2xl font-semibold text-gray-900">
             Create Post
@@ -293,15 +305,11 @@ const AlumniPosts = () => {
           </section>
         )}
         <section className="card p-4">
-          <h3 className="card-title">My Recent Posts</h3>
+          <h3 className="card-title mb-4">My Recent Posts</h3>
           {recentPosts.length > 0 ? (
-            <div className="space-y-2 mt-4">
+            <div className="space-y-4">
               {recentPosts.map(post => (
-                <div key={post.id} className="border p-2 rounded">
-                  <h4 className="font-semibold">{post.title}</h4>
-                  <p className="text-sm text-gray-600">Category: {post.category}</p>
-                  <p className="text-xs text-gray-500">Posted on {new Date(post.createdAt).toLocaleDateString()}</p>
-                </div>
+                <PostCard key={post.id} post={post} onDelete={handleDeletePost} />
               ))}
             </div>
           ) : (

@@ -28,6 +28,7 @@ const getNavItemsForRole = () => {
       { to: "/alumni/mentorships", label: "Mentorship Requests" },
       { to: "/alumni/jobs", label: "Job Referrals" },
       { to: "/alumni/posts", label: "Create Post" },
+      { to: "/alumni/feed", label: "Networking Feed" },
       { to: "/alumni/events", label: "Events" },
       { to: "/alumni/settings", label: "Settings" }
     ];

@@ -274,6 +274,16 @@ const App = () => {
           }
         />
         <Route
+          path="/alumni/feed"
+          element={
+            <ProtectedRoute allowedRole="alumni">
+              <AppLayout>
+                <NetworkingFeed />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/alumni/events"
           element={
             <ProtectedRoute allowedRole="alumni">

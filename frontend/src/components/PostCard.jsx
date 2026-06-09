@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { togglePostLike } from "../services/api";
 
-const PostCard = ({ post }) => {
+const PostCard = ({ post, onDelete }) => {
   const [likesCount, setLikesCount] = useState(parseInt(post.likes) || 0);
   const [isLikedByMe, setIsLikedByMe] = useState(post.isLikedByMe || false);
   const [isLiking, setIsLiking] = useState(false);
@@ -64,10 +64,19 @@ const PostCard = ({ post }) => {
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
               {post.author}
             </h3>
-            {/* Options button (dummy) */}
-            <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
-            </button>
+            {/* Options or Delete button */}
+            {onDelete ? (
+              <button 
+                onClick={() => onDelete(post)}
+                className="text-red-500 hover:text-red-700 dark:hover:text-red-400 text-xs font-bold uppercase transition-colors"
+              >
+                Delete
+              </button>
+            ) : (
+              <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+              </button>
+            )}
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
             {post.category ? `${post.category} • ` : ""}Reva Connect Member
@@ -100,13 +109,15 @@ const PostCard = ({ post }) => {
              </a>
           </div>
         )}
+      </div>
 
-        {post.imageData && (
-          <div className="mt-3 overflow-hidden rounded-md border border-gray-200 dark:border-slate-700">
-            <img src={post.imageData} alt="Post attachment" className="w-full object-cover max-h-96" />
-          </div>
-        )}
+      {post.imageData && (
+        <div className="mt-2 border-y border-gray-200 dark:border-slate-800 overflow-hidden">
+          <img src={post.imageData} alt="Post attachment" className="w-full object-cover max-h-[500px]" />
+        </div>
+      )}
 
+      <div className="px-4 pb-2">
         {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-3">
             {post.tags.map((tag, idx) => (
