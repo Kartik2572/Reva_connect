@@ -138,5 +138,15 @@ export const fetchAdminActivityLogs = (params) => api.get("/admin/activity-logs"
 export const createAdminActivityLog = (payload) => api.post("/admin/activity-logs", payload);
 export const deleteAdminPost = (id, payload) => api.delete(`/admin/posts/${id}`, { data: payload });
 
+// Chat APIs
+export const fetchConversations = () => api.get("/chat/conversations");
+export const fetchMessages = (conversationId, page = 1, limit = 50) => 
+  api.get(`/chat/${conversationId}/messages`, { params: { page, limit } });
+export const getOrCreateConversation = (userId) => api.post(`/chat/conversation/${userId}`);
+export const fetchUnreadCount = () => api.get("/chat/unread-count");
+
+export const fetchAdminConversations = () => api.get("/chat/admin/conversations");
+export const fetchAdminMessages = (conversationId) => api.get(`/chat/admin/${conversationId}/messages`);
+
 export default api;
 

@@ -5,8 +5,10 @@ import {
   sendConnectionRequest,
   fetchMyConnections,
   acceptConnectionRequest,
-  rejectConnectionRequest
+  rejectConnectionRequest,
+  getOrCreateConversation
 } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 const StudentFeed = () => {
   const [students, setStudents] = useState([]);
@@ -15,6 +17,7 @@ const StudentFeed = () => {
   const [sending, setSending] = useState(null);
   const [myConnections, setMyConnections] = useState([]);
   const [activeTab, setActiveTab] = useState("discover");
+  const navigate = useNavigate();
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userId = user?.id;
@@ -124,6 +127,18 @@ const StudentFeed = () => {
     }
   };
 
+  const handleStartChat = async (studentId) => {
+    try {
+      const res = await getOrCreateConversation(studentId);
+      if (res.data?.success) {
+        navigate("/chat");
+      }
+    } catch (error) {
+      console.error("Error starting chat:", error);
+      alert("Could not start chat. Make sure connection is accepted.");
+    }
+  };
+
   const getConnectionButton = (student) => {
     const connection = connections[student.id];
     
@@ -161,9 +176,17 @@ const StudentFeed = () => {
 
     if (connection.status === "Accepted") {
       return (
-        <span className="rounded-full bg-green-100 px-3 py-1.5 text-sm font-medium text-green-800">
-          Connected
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-green-100 px-3 py-1.5 text-sm font-medium text-green-800">
+            Connected
+          </span>
+          <button
+            onClick={() => handleStartChat(student.id)}
+            className="rounded-full bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          >
+            Chat
+          </button>
+        </div>
       );
     }
 
@@ -325,6 +348,14 @@ const StudentFeed = () => {
                       >
                         {connection.status}
                       </span>
+                      {connection.status === "Accepted" && (
+                        <button
+                          onClick={() => handleStartChat(connection.user_id)}
+                          className="rounded-full bg-blue-600 px-4 py-1 text-xs font-medium text-white transition-colors hover:bg-blue-700"
+                        >
+                          Chat
+                        </button>
+                      )}
                       <span className="text-xs text-gray-400">
                         {formatDate(connection.created_at)}
                       </span>

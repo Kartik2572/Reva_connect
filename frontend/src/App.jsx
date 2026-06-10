@@ -35,6 +35,7 @@ import StudentFeed from "./pages/StudentFeed.jsx";
 import StudentEvents from "./pages/StudentEvents.jsx";
 import StudentProfile from "./pages/StudentProfile.jsx";
 import StudentSettings from "./pages/StudentSettings.jsx";
+import Chat from "./pages/Chat.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 const AppLayout = ({ children }) => {
@@ -59,6 +60,19 @@ const App = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/home" element={<LandingPage />} />
+        
+        {/* Global Authenticated Routes */}
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute allowedRoles={["student", "alumni", "admin"]}>
+              <AppLayout>
+                <Chat />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/dashboard"
           element={

@@ -1,4 +1,6 @@
 import { NavLink } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { fetchUnreadCount } from "../services/api";
 
 // Determine menu items based on role in localStorage
 const getNavItemsForRole = () => {
@@ -30,6 +32,7 @@ const getNavItemsForRole = () => {
       { to: "/alumni/posts", label: "Create Post" },
       { to: "/alumni/feed", label: "Networking Feed" },
       { to: "/alumni/events", label: "Events" },
+      { to: "/chat", label: "Messages" },
       { to: "/alumni/settings", label: "Settings" }
     ];
   }
@@ -42,6 +45,7 @@ const getNavItemsForRole = () => {
       { to: "/student/jobs", label: "Job Referrals" },
       { to: "/student/feed", label: "Networking Feed" },
       { to: "/student/events", label: "Events & Webinars" },
+      { to: "/chat", label: "Messages" },
       { to: "/student/settings", label: "Settings" }
     ];
   }
@@ -59,6 +63,29 @@ const getNavItemsForRole = () => {
 
 const Sidebar = () => {
   const navItems = getNavItemsForRole();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const getUnread = async () => {
+      try {
+        const res = await fetchUnreadCount();
+        if (res.data?.success) {
+          setUnreadCount(res.data.count);
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+
+    getUnread();
+    const interval = setInterval(getUnread, 15000); // Check every 15s
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <aside className="fixed left-0 top-[72px] h-[calc(100vh-72px)] w-80 flex-shrink-0 border-r border-gray-100/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl pb-6 pt-6 md:flex md:flex-col z-40 shadow-[4px_0_24px_rgb(0,0,0,0.02)] transition-all duration-300">
       <div className="px-6 pb-4">
@@ -80,9 +107,16 @@ const Sidebar = () => {
               ].join(" ")
             }
           >
-            <span className="relative z-10 flex items-center gap-3">
-              <span className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${window.location.pathname === item.to ? 'bg-[#F37021] dark:bg-orange-400' : 'bg-transparent group-hover:bg-gray-300 dark:group-hover:bg-gray-600'}`}></span>
-              {item.label}
+            <span className="relative z-10 flex items-center gap-3 w-full justify-between">
+              <span className="flex items-center gap-3">
+                <span className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${window.location.pathname === item.to ? 'bg-[#F37021] dark:bg-orange-400' : 'bg-transparent group-hover:bg-gray-300 dark:group-hover:bg-gray-600'}`}></span>
+                {item.label}
+              </span>
+              {item.to === "/chat" && unreadCount > 0 && (
+                <span className="bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                  {unreadCount}
+                </span>
+              )}
             </span>
           </NavLink>
         ))}
