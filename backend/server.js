@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import express from "express";
+import { createServer } from "http";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -13,10 +14,13 @@ import eventRoutes from "./routes/eventRoutes.js";
 import mentorshipRoutes from "./routes/mentorshipRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import connectionRoutes from "./routes/connectionRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
+import { initializeSocket } from "./socket.js";
 
 dotenv.config();
 
 const app = express();
+const server = createServer(app);
 const PORT = Number(process.env.PORT) || 5000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -41,6 +45,9 @@ app.use(cors({
   },
   credentials: true
 }));
+
+// Initialize Socket.IO
+initializeSocket(server, allowedOrigins);
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
@@ -70,6 +77,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/mentorship", mentorshipRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/connections", connectionRoutes);
+app.use("/api/chat", chatRoutes);
 
 // 404 handler for unknown API routes
 app.use("/api", (req, res) => {
@@ -83,7 +91,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`RevaConnect API running on http://localhost:${PORT}`);
 });
 
