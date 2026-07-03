@@ -101,8 +101,10 @@ export const deleteAdminUser = async (req, res) => {
 export const getPendingAlumni = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, name, role, company, branch_or_company AS "branchOrCompany", graduation_year AS "graduationYear", experience, domain, location, status, verification_status AS "verificationStatus"
-       FROM alumni WHERE status = 'Pending' ORDER BY name`
+      `SELECT a.id, a.name, u.email, a.role, a.company, a.branch_or_company AS "branchOrCompany", a.graduation_year AS "graduationYear", a.experience, a.domain, a.location, a.status, a.verification_status AS "verificationStatus"
+       FROM alumni a
+       LEFT JOIN users u ON a.user_id = u.id
+       WHERE a.status = 'Pending' ORDER BY a.name`
     );
     res.json({ success: true, data: result.rows });
   } catch (error) {
@@ -112,24 +114,46 @@ export const getPendingAlumni = async (req, res) => {
 };
 
 export const approveAlumni = async (req, res) => {
+  const client = await pool.connect();
   try {
     const { id } = req.params;
     const adminName = req.user.name || "Admin";
 
-    const result = await pool.query(
-      `UPDATE alumni SET status = 'Approved', verification_status = 'Approved' WHERE id = $1 RETURNING id, name, role, company, branch_or_company AS "branchOrCompany", graduation_year AS "graduationYear", experience, domain, location, status, verification_status AS "verificationStatus"`,
+    await client.query("BEGIN");
+
+    const alumniUpdateRes = await client.query(
+      `UPDATE alumni 
+       SET status = 'Approved', verification_status = 'Approved' 
+       WHERE id = $1 
+       RETURNING id, name, user_id, role, company, branch_or_company AS "branchOrCompany", graduation_year AS "graduationYear", experience, domain, location, status, verification_status AS "verificationStatus"`,
       [id]
     );
 
-    if (!result.rows.length) {
+    if (!alumniUpdateRes.rows.length) {
+      await client.query("ROLLBACK");
       return res.status(404).json({ success: false, message: "Pending alumni not found" });
     }
 
-    await logAdminActivity(adminName, `Admin ${adminName} approved alumni ${result.rows[0].name}`);
-    res.json({ success: true, data: result.rows[0] });
+    const approvedAlumni = alumniUpdateRes.rows[0];
+    const userId = approvedAlumni.user_id;
+
+    if (userId) {
+      await client.query(
+        `UPDATE users SET role = 'alumni', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+        [userId]
+      );
+    }
+
+    await client.query("COMMIT");
+
+    await logAdminActivity(adminName, `Admin ${adminName} approved alumni ${approvedAlumni.name}`);
+    res.json({ success: true, data: approvedAlumni });
   } catch (error) {
-    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js");
+    await client.query("ROLLBACK");
+    logger.error({ error: error.message, stack: error.stack }, "Error in adminController.js (approveAlumni)");
     res.status(500).json({ success: false, message: "Internal server error" });
+  } finally {
+    client.release();
   }
 };
 

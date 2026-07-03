@@ -258,3 +258,193 @@ export const deleteAlumnus = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
+export const requestAlumniVerification = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+
+    if (!userId || userRole !== "student") {
+      return res.status(403).json({
+        success: false,
+        message: "Only students are allowed to request alumni access."
+      });
+    }
+
+    const {
+      company,
+      role, // representing "Current Job Role"
+      experience,
+      domain,
+      location,
+      graduationYear,
+      branch,
+      linkedinProfile
+    } = req.body;
+
+    // Field validations
+    if (
+      !company?.trim() ||
+      !role?.trim() ||
+      experience === undefined ||
+      experience === null ||
+      !domain?.trim() ||
+      !location?.trim() ||
+      !graduationYear ||
+      !branch?.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields except LinkedIn profile are required."
+      });
+    }
+
+    const expVal = Number(experience);
+    if (isNaN(expVal) || expVal < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Experience must be a valid non-negative number."
+      });
+    }
+
+    const gradYearVal = Number(graduationYear);
+    const currentYear = new Date().getFullYear();
+    if (isNaN(gradYearVal) || gradYearVal < 1950 || gradYearVal > currentYear + 10) {
+      return res.status(400).json({
+        success: false,
+        message: "Graduation year must be a valid year."
+      });
+    }
+
+    // Get user's current name from database
+    const userRes = await pool.query("SELECT name FROM users WHERE id = $1", [userId]);
+    if (!userRes.rows.length) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found."
+      });
+    }
+    const studentName = userRes.rows[0].name;
+
+    // Check if there is an existing alumni request for this user
+    const existingReq = await pool.query(
+      "SELECT id, status, verification_status AS \"verificationStatus\" FROM alumni WHERE user_id = $1 LIMIT 1",
+      [userId]
+    );
+
+    let alumniId = null;
+
+    if (existingReq.rows.length > 0) {
+      const record = existingReq.rows[0];
+      const verificationStatus = record.verificationStatus;
+
+      if (verificationStatus === "Approved") {
+        return res.status(400).json({
+          success: false,
+          message: "You are already an approved alumni."
+        });
+      }
+
+      if (verificationStatus === "Pending") {
+        return res.status(400).json({
+          success: false,
+          message: "You already have a pending alumni verification request."
+        });
+      }
+
+      // If status/verificationStatus is 'Rejected', allow update/resubmission
+      // "Update existing alumni record instead of creating duplicates."
+      const updateResult = await pool.query(
+        `UPDATE alumni 
+         SET name = $1, role = $2, company = $3, branch_or_company = $4, graduation_year = $5, experience = $6, domain = $7, location = $8, linkedin_profile = $9, status = 'Pending', verification_status = 'Pending'
+         WHERE user_id = $10
+         RETURNING id`,
+        [
+          studentName,
+          role.trim(),
+          company.trim(),
+          branch.trim(),
+          gradYearVal,
+          expVal,
+          domain.trim(),
+          location.trim(),
+          linkedinProfile?.trim() || null,
+          userId
+        ]
+      );
+      alumniId = updateResult.rows[0].id;
+    } else {
+      // Create new pending record
+      const insertResult = await pool.query(
+        `INSERT INTO alumni (user_id, name, role, company, branch_or_company, graduation_year, experience, domain, location, linkedin_profile, status, verification_status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'Pending', 'Pending')
+         RETURNING id`,
+        [
+          userId,
+          studentName,
+          role.trim(),
+          company.trim(),
+          branch.trim(),
+          gradYearVal,
+          expVal,
+          domain.trim(),
+          location.trim(),
+          linkedinProfile?.trim() || null
+        ]
+      );
+      alumniId = insertResult.rows[0].id;
+    }
+
+    // Update branch in users table to stay in sync
+    await pool.query("UPDATE users SET branch = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2", [branch.trim(), userId]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Alumni request submitted successfully.",
+      data: { alumniId }
+    });
+  } catch (error) {
+    logger.error({ error: error.message, stack: error.stack }, "Error requesting alumni verification");
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error."
+    });
+  }
+};
+
+export const getMyAlumniRequest = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized."
+      });
+    }
+
+    const result = await pool.query(
+      `SELECT id, name, role, company, branch_or_company AS "branchOrCompany", graduation_year AS "graduationYear", experience, domain, location, linkedin_profile AS "linkedinProfile", status, verification_status AS "verificationStatus"
+       FROM alumni
+       WHERE user_id = $1 LIMIT 1`,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({
+        success: true,
+        data: null
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: result.rows[0]
+    });
+  } catch (error) {
+    logger.error({ error: error.message, stack: error.stack }, "Error getting user alumni request status");
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error."
+    });
+  }
+};
