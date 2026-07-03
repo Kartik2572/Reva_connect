@@ -148,5 +148,9 @@ export const fetchUnreadCount = () => api.get("/chat/unread-count");
 export const fetchAdminConversations = () => api.get("/chat/admin/conversations");
 export const fetchAdminMessages = (conversationId) => api.get(`/chat/admin/${conversationId}/messages`);
 
+// Student Alumni Conversion request APIs
+export const submitAlumniRequest = (payload) => api.post("/alumni/request", payload);
+export const fetchMyAlumniRequest = () => api.get("/alumni/my-request");
+
 export default api;
 

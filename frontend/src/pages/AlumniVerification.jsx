@@ -70,10 +70,12 @@ const AlumniVerification = () => {
             <table className="min-w-full text-left text-xs text-gray-600">
               <thead className="border-b border-gray-100 bg-gray-50 text-[11px] uppercase tracking-wide text-gray-500">
                 <tr>
-                  <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Company</th>
-                  <th className="px-4 py-3">Branch</th>
+                  <th className="px-4 py-3">Student Name</th>
+                  <th className="px-4 py-3">Email</th>
                   <th className="px-4 py-3">Graduation Year</th>
+                  <th className="px-4 py-3">Company</th>
+                  <th className="px-4 py-3">Current Role</th>
+                  <th className="px-4 py-3">Branch</th>
                   <th className="px-4 py-3">Experience</th>
                   <th className="px-4 py-3">Domain</th>
                   <th className="px-4 py-3">Location</th>
@@ -88,10 +90,12 @@ const AlumniVerification = () => {
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">
                         {alumni.name}
                       </td>
-                      <td className="px-4 py-3 text-xs text-gray-700">{alumni.company}</td>
-                      <td className="px-4 py-3 text-xs text-gray-700">{alumni.branchOrCompany}</td>
+                      <td className="px-4 py-3 text-xs text-gray-700">{alumni.email || "-"}</td>
                       <td className="px-4 py-3 text-xs text-gray-700">{alumni.graduationYear}</td>
-                      <td className="px-4 py-3 text-xs text-gray-700">{alumni.experience || "-"}</td>
+                      <td className="px-4 py-3 text-xs text-gray-700">{alumni.company}</td>
+                      <td className="px-4 py-3 text-xs text-gray-700">{alumni.role || "-"}</td>
+                      <td className="px-4 py-3 text-xs text-gray-700">{alumni.branchOrCompany}</td>
+                      <td className="px-4 py-3 text-xs text-gray-700">{alumni.experience ? `${alumni.experience} yrs` : "-"}</td>
                       <td className="px-4 py-3 text-xs text-gray-700">{alumni.domain || "-"}</td>
                       <td className="px-4 py-3 text-xs text-gray-700">{alumni.location || "-"}</td>
                       <td className="px-4 py-3">
@@ -118,7 +122,7 @@ const AlumniVerification = () => {
                 ) : (
                   <tr>
                     <td
-                      colSpan={9}
+                      colSpan={11}
                       className="px-4 py-6 text-center text-xs text-gray-500"
                     >
                       No pending alumni verification requests.

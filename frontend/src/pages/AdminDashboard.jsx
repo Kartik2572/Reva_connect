@@ -330,16 +330,21 @@ const AdminDashboard = () => {
                 <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
-                <h3 className="card-title">Alumni Verification</h3>
+                <h3 className="card-title">Student → Alumni Requests</h3>
               </div>
             </div>
             <div className="overflow-x-auto -mx-6 px-6">
               <table className="min-w-full text-left text-xs text-gray-600">
                 <thead className="border-b border-gray-100 bg-gray-50/50 text-[10px] font-bold uppercase tracking-wider text-gray-500">
                   <tr>
-                    <th className="px-4 py-3 rounded-tl-lg">Name</th>
+                    <th className="px-4 py-3 rounded-tl-lg">Student Name</th>
+                    <th className="px-4 py-3">Email</th>
+                    <th className="px-4 py-3">Graduation Year</th>
                     <th className="px-4 py-3">Company</th>
-                    <th className="px-4 py-3">Grad Year</th>
+                    <th className="px-4 py-3">Current Role</th>
+                    <th className="px-4 py-3">Experience</th>
+                    <th className="px-4 py-3">Domain</th>
+                    <th className="px-4 py-3">Location</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3 rounded-tr-lg">Actions</th>
                   </tr>
@@ -350,10 +355,13 @@ const AdminDashboard = () => {
                       <td className="px-4 py-3 text-sm font-bold text-gray-900">
                         {alumni.name}
                       </td>
-                      <td className="px-4 py-3 text-xs font-medium">{alumni.company}</td>
-                      <td className="px-4 py-3 text-xs font-medium">
-                        {alumni.graduationYear}
-                      </td>
+                      <td className="px-4 py-3 text-xs font-medium text-gray-600">{alumni.email || "-"}</td>
+                      <td className="px-4 py-3 text-xs font-medium text-gray-600">{alumni.graduationYear}</td>
+                      <td className="px-4 py-3 text-xs font-medium text-gray-600">{alumni.company}</td>
+                      <td className="px-4 py-3 text-xs font-medium text-gray-600">{alumni.role || "-"}</td>
+                      <td className="px-4 py-3 text-xs font-medium text-gray-600">{alumni.experience ? `${alumni.experience} yrs` : "-"}</td>
+                      <td className="px-4 py-3 text-xs font-medium text-gray-600">{alumni.domain || "-"}</td>
+                      <td className="px-4 py-3 text-xs font-medium text-gray-600">{alumni.location || "-"}</td>
                       <td className="px-4 py-3 text-xs">
                         <span className="badge bg-yellow-50 text-yellow-700 border border-yellow-100">
                           {alumni.verificationStatus}
@@ -380,7 +388,7 @@ const AdminDashboard = () => {
                   {pendingAlumni.length === 0 && (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={10}
                         className="px-4 py-8 text-center text-sm font-medium text-gray-500 italic"
                       >
                         No pending alumni for verification.
