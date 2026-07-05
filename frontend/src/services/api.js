@@ -155,5 +155,10 @@ export const fetchMyAlumniRequest = () => api.get("/alumni/my-request");
 // Change Password API
 export const changePassword = (payload) => api.put("/auth/change-password", payload);
 
+// Forgot Password Workflow APIs
+export const forgotPassword = (payload) => api.post("/auth/forgot-password", payload);
+export const verifyOtp = (payload) => api.post("/auth/verify-otp", payload);
+export const resetPassword = (payload) => api.post("/auth/reset-password", payload);
+
 export default api;
 

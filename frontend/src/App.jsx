@@ -36,6 +36,7 @@ import StudentEvents from "./pages/StudentEvents.jsx";
 import StudentProfile from "./pages/StudentProfile.jsx";
 import StudentSettings from "./pages/StudentSettings.jsx";
 import Chat from "./pages/Chat.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 const AppLayout = ({ children }) => {
@@ -49,7 +50,7 @@ const AppLayout = ({ children }) => {
 
 const App = () => {
   const location = useLocation();
-  const hideNavbarOnLogin = location.pathname === "/" || location.pathname === "/login" || location.pathname === "/register";
+  const hideNavbarOnLogin = location.pathname === "/" || location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgot-password";
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -59,6 +60,7 @@ const App = () => {
         <Route path="/" element={<LoginPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/home" element={<LandingPage />} />
         
         {/* Global Authenticated Routes */}

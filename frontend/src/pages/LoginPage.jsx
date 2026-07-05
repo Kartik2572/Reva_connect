@@ -142,6 +142,14 @@ const LoginPage = () => {
                   className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-2xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#F37021]/50 focus:border-[#F37021] focus:bg-black/40 hover:bg-white/10 transition-all duration-300"
                 />
               </div>
+              <div className="flex justify-end pr-1">
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-bold text-[#F37021] hover:text-orange-400 transition-colors"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
             </div>
 
             {/* Error Message */}
