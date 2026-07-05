@@ -93,5 +93,10 @@ app.use((err, req, res, next) => {
 // Start server
 server.listen(PORT, () => {
   console.log(`RevaConnect API running on http://localhost:${PORT}`);
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    console.log("✅ Email service configured successfully.");
+  } else {
+    console.log("⚠ Email service not configured.\nUsing fallback OTP logger.");
+  }
 });
 

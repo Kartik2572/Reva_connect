@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import { pool } from "../config/db.js";
 import { generateToken } from "../utils/generateToken.js";
 import { logger } from "../utils/logger.js";
+import { sendOtpEmail } from "../utils/mailer.js";
 
 const SALT_ROUNDS = 10;
 
@@ -388,6 +389,248 @@ export const changePassword = async (req, res) => {
       success: false,
       message: "Error changing password."
     });
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required." });
+    }
+
+    // Generic response message
+    const genericResponse = {
+      success: true,
+      message: "If that email is registered, we have sent an OTP."
+    };
+
+    // 1. Verify email exists in DB
+    const userResult = await pool.query(
+      "SELECT id, reset_otp_expiry FROM users WHERE email = $1",
+      [email.trim().toLowerCase()]
+    );
+
+    if (userResult.rows.length === 0) {
+      // Return generic response even if email doesn't exist
+      return res.json(genericResponse);
+    }
+
+    const user = userResult.rows[0];
+
+    // Limit resend frequency to 60 seconds
+    if (user.reset_otp_expiry) {
+      const sentAt = new Date(user.reset_otp_expiry).getTime() - 10 * 60 * 1000;
+      const now = Date.now();
+      if (now - sentAt < 60 * 1000) {
+        return res.status(429).json({
+          success: false,
+          message: "Please wait 60 seconds before requesting another OTP."
+        });
+      }
+    }
+
+    // 2. Generate secure 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
+    // 3. Hash OTP using bcrypt
+    const hashedOtp = await bcrypt.hash(otp, 10);
+
+    // 4. Save hashed OTP and expiry in DB, and reset attempts to 0 and otp_verified to false
+    await pool.query(
+      `UPDATE users 
+       SET reset_otp = $1, reset_otp_expiry = $2, otp_verified = false, reset_otp_attempts = 0 
+       WHERE id = $3`,
+      [hashedOtp, expiry, user.id]
+    );
+
+    // 5. Send OTP via Nodemailer or log fallback
+    await sendOtpEmail(email, otp);
+
+    return res.json(genericResponse);
+  } catch (error) {
+    logger.error({ error: error.message, stack: error.stack }, "Error in forgotPassword");
+    return res.status(500).json({ success: false, message: "Internal server error." });
+  }
+};
+
+export const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ success: false, message: "Email and OTP are required." });
+    }
+
+    if (otp.length !== 6 || !/^\d+$/.test(otp)) {
+      return res.status(400).json({ success: false, message: "OTP must be exactly 6 digits." });
+    }
+
+    // 1. Fetch user by email
+    const result = await pool.query(
+      `SELECT id, reset_otp, reset_otp_expiry, reset_otp_attempts 
+       FROM users WHERE email = $1`,
+      [email.trim().toLowerCase()]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ success: false, message: "Invalid email or OTP." });
+    }
+
+    const user = result.rows[0];
+
+    // 2. Check if OTP exists
+    if (!user.reset_otp || !user.reset_otp_expiry) {
+      return res.status(400).json({ success: false, message: "No active OTP found for this email." });
+    }
+
+    // 3. Limit OTP attempts (max 5)
+    if (user.reset_otp_attempts >= 5) {
+      // Invalidate OTP immediately
+      await pool.query(
+        `UPDATE users 
+         SET reset_otp = null, reset_otp_expiry = null, reset_otp_attempts = 0, otp_verified = false 
+         WHERE id = $1`,
+        [user.id]
+      );
+      return res.status(400).json({
+        success: false,
+        message: "Too many incorrect attempts. Please request a new OTP."
+      });
+    }
+
+    // 4. Check expiration (10 minutes)
+    if (new Date() > new Date(user.reset_otp_expiry)) {
+      return res.status(400).json({ success: false, message: "OTP has expired. Please request a new one." });
+    }
+
+    // 5. Compare input OTP with stored hashed OTP
+    const isMatch = await bcrypt.compare(otp, user.reset_otp);
+    if (!isMatch) {
+      // Increment attempts
+      await pool.query(
+        `UPDATE users SET reset_otp_attempts = reset_otp_attempts + 1 WHERE id = $1`,
+        [user.id]
+      );
+      
+      const attemptsRemaining = 5 - (user.reset_otp_attempts + 1);
+      if (attemptsRemaining <= 0) {
+        // Clear immediately
+        await pool.query(
+          `UPDATE users 
+           SET reset_otp = null, reset_otp_expiry = null, reset_otp_attempts = 0, otp_verified = false 
+           WHERE id = $1`,
+          [user.id]
+        );
+        return res.status(400).json({
+          success: false,
+          message: "Too many incorrect attempts. Please request a new OTP."
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        message: `Incorrect OTP. ${attemptsRemaining} attempts remaining.`
+      });
+    }
+
+    // 6. OTP is correct and valid: set otp_verified = true, reset attempts to 0
+    await pool.query(
+      `UPDATE users 
+       SET otp_verified = true, reset_otp_attempts = 0 
+       WHERE id = $1`,
+      [user.id]
+    );
+
+    return res.json({
+      success: true,
+      message: "OTP verified successfully."
+    });
+  } catch (error) {
+    logger.error({ error: error.message, stack: error.stack }, "Error in verifyOtp");
+    return res.status(500).json({ success: false, message: "Internal server error." });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, newPassword, confirmPassword } = req.body;
+
+    if (!email || !newPassword || !confirmPassword) {
+      return res.status(400).json({ success: false, message: "All fields are required." });
+    }
+
+    // 1. Fetch user by email
+    const result = await pool.query(
+      `SELECT id, otp_verified FROM users WHERE email = $1`,
+      [email.trim().toLowerCase()]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ success: false, message: "User not found." });
+    }
+
+    const user = result.rows[0];
+
+    // 2. Require otp_verified == true
+    if (!user.otp_verified) {
+      return res.status(403).json({ success: false, message: "OTP verification required." });
+    }
+
+    // 3. Confirm passwords match
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ success: false, message: "Confirm password does not match new password." });
+    }
+
+    // 4. Password complexity validation
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters long."
+      });
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least one uppercase letter."
+      });
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least one lowercase letter."
+      });
+    }
+    if (!/\d/.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least one number."
+      });
+    }
+    if (!/[^A-Za-z0-9]/.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least one special character."
+      });
+    }
+
+    // 5. Hash password
+    const hashedNewPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+    // 6. Update user password and clear OTP fields
+    await pool.query(
+      `UPDATE users 
+       SET password = $1, reset_otp = null, reset_otp_expiry = null, otp_verified = false, reset_otp_attempts = 0, updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $2`,
+      [hashedNewPassword, user.id]
+    );
+
+    return res.json({
+      success: true,
+      message: "Password reset successfully. Please login again."
+    });
+  } catch (error) {
+    logger.error({ error: error.message, stack: error.stack }, "Error in resetPassword");
+    return res.status(500).json({ success: false, message: "Internal server error." });
   }
 };
 
