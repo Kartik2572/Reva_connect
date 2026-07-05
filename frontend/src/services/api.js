@@ -152,5 +152,8 @@ export const fetchAdminMessages = (conversationId) => api.get(`/chat/admin/${con
 export const submitAlumniRequest = (payload) => api.post("/alumni/request", payload);
 export const fetchMyAlumniRequest = () => api.get("/alumni/my-request");
 
+// Change Password API
+export const changePassword = (payload) => api.put("/auth/change-password", payload);
+
 export default api;
 

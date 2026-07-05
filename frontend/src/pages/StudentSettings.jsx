@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import DarkModeToggle from "../components/DarkModeToggle.jsx";
+import ChangePassword from "../components/ChangePassword.jsx";
 import { updateUserProfile, submitAlumniRequest, fetchMyAlumniRequest } from "../services/api.js";
 
 const StudentSettings = () => {
@@ -14,15 +15,6 @@ const StudentSettings = () => {
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileMsg, setProfileMsg] = useState({ type: "", text: "" });
-
-  // Security form state
-  const [securityData, setSecurityData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: ""
-  });
-  const [savingSecurity, setSavingSecurity] = useState(false);
-  const [securityMsg, setSecurityMsg] = useState({ type: "", text: "" });
 
   // Alumni request state
   const [alumniRequest, setAlumniRequest] = useState(null);
@@ -86,9 +78,7 @@ const StudentSettings = () => {
     setProfileData({ ...profileData, [e.target.name]: e.target.value });
   };
 
-  const handleSecurityChange = (e) => {
-    setSecurityData({ ...securityData, [e.target.name]: e.target.value });
-  };
+
 
   const handleAlumniFormChange = (e) => {
     setAlumniForm({ ...alumniForm, [e.target.name]: e.target.value });
@@ -117,30 +107,7 @@ const StudentSettings = () => {
     }
   };
 
-  const handleSecuritySubmit = (e) => {
-    e.preventDefault();
-    setSavingSecurity(true);
-    setSecurityMsg({ type: "", text: "" });
 
-    if (securityData.newPassword !== securityData.confirmPassword) {
-      setSecurityMsg({ type: "error", text: "New passwords do not match." });
-      setSavingSecurity(false);
-      return;
-    }
-
-    if (securityData.newPassword.length < 6) {
-      setSecurityMsg({ type: "error", text: "New password must be at least 6 characters." });
-      setSavingSecurity(false);
-      return;
-    }
-
-    // Since changing password is mock/placeholder in the backend for security tab, show success
-    setTimeout(() => {
-      setSecurityMsg({ type: "success", text: "Password updated successfully!" });
-      setSecurityData({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      setSavingSecurity(false);
-    }, 800);
-  };
 
   const handleAlumniSubmit = async (e) => {
     e.preventDefault();
@@ -342,79 +309,7 @@ const StudentSettings = () => {
             )}
 
             {activeTab === "security" && (
-              <section className="card p-6 md:p-8">
-                <h3 className="card-title text-xl font-bold mb-2">Security Settings</h3>
-                <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
-                  Maintain the safety of your account by setting a strong security password.
-                </p>
-
-                <form onSubmit={handleSecuritySubmit} className="space-y-5">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-slate-400 mb-2">
-                      Current Password
-                    </label>
-                    <input
-                      type="password"
-                      name="currentPassword"
-                      value={securityData.currentPassword}
-                      onChange={handleSecurityChange}
-                      className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 text-sm text-gray-900 dark:text-white focus:border-[#F37021] focus:ring-2 focus:ring-[#F37021]/10 focus:outline-none transition-all duration-300"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-slate-400 mb-2">
-                      New Password
-                    </label>
-                    <input
-                      type="password"
-                      name="newPassword"
-                      value={securityData.newPassword}
-                      onChange={handleSecurityChange}
-                      className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 text-sm text-gray-900 dark:text-white focus:border-[#F37021] focus:ring-2 focus:ring-[#F37021]/10 focus:outline-none transition-all duration-300"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-slate-400 mb-2">
-                      Confirm New Password
-                    </label>
-                    <input
-                      type="password"
-                      name="confirmPassword"
-                      value={securityData.confirmPassword}
-                      onChange={handleSecurityChange}
-                      className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 text-sm text-gray-900 dark:text-white focus:border-[#F37021] focus:ring-2 focus:ring-[#F37021]/10 focus:outline-none transition-all duration-300"
-                      required
-                    />
-                  </div>
-
-                  {securityMsg.text && (
-                    <div
-                      className={`flex items-center gap-3 rounded-2xl p-4 text-sm font-semibold border ${
-                        securityMsg.type === "success"
-                          ? "bg-green-50 border-green-200 text-green-800 dark:bg-green-950/20 dark:border-green-900/50 dark:text-green-400"
-                          : "bg-red-50 border-red-200 text-red-800 dark:bg-red-950/20 dark:border-red-900/50 dark:text-red-400"
-                      }`}
-                    >
-                      <span>
-                        {securityMsg.type === "success" ? "✅" : "⚠️"}
-                      </span>
-                      <p>{securityMsg.text}</p>
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={savingSecurity}
-                    className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-[#F37021] to-orange-500 hover:from-orange-400 hover:to-[#F37021] px-6 py-3 text-sm font-bold text-white shadow-sm transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
-                  >
-                    {savingSecurity ? "Saving password..." : "Update Password"}
-                  </button>
-                </form>
-              </section>
+              <ChangePassword />
             )}
 
             {activeTab === "alumni" && (
