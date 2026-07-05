@@ -111,6 +111,35 @@ All frontend data is loaded using Axios wrapper functions from `src/services/api
 - Card‑based design for alumni, jobs, events and posts.
 
 ---
+
+## Email OTP Setup (Gmail SMTP)
+
+To enable real email delivery for the Forgot Password OTP workflow using Gmail:
+
+1. **Enable Google Two-Step Verification**:
+   - Go to your Google Account settings -> Security.
+   - Under "How you sign in to Google," select **2-Step Verification** and follow the prompts to enable it.
+   
+2. **Generate App Password**:
+   - Go back to Google Account security settings.
+   - Search for **App passwords** or go to the App Passwords section.
+   - Choose a custom name (e.g., `RevaConnect`) and click **Create**.
+   - Copy the generated 16-character app password.
+
+3. **Configure Environment Variables**:
+   - Open `/backend/.env` and add:
+     ```env
+     EMAIL_USER=your-email@gmail.com
+     EMAIL_PASS=your-16-character-app-password
+     ```
+   
+4. **Restart Backend**:
+   - Restart your backend server. You should see:
+     `✅ Email service configured successfully.`
+
+*Note: If these environment variables are missing, the system automatically runs the **Fallback OTP Logger**, writing generated OTP codes directly to the terminal for easy local testing.*
+
+---
 Tech stack: React.js, Express.js, Node.js, PostgreSQL, JWT, Bcrypt
 
 
